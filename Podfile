@@ -13,6 +13,7 @@ target 'the-example-app.swift' do
   pod 'DeepLinkKit'
   pod 'Fabric'
   pod 'Crashlytics'
+  pod 'Apollo', '~> 0.9.0'
 
   target 'the-example-app.swiftTests' do
     inherit! :search_paths

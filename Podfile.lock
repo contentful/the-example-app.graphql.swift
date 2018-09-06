@@ -2,6 +2,9 @@ PODS:
   - Alamofire (4.7.3)
   - AlamofireImage (3.3.1):
     - Alamofire (~> 4.5)
+  - Apollo (0.9.3):
+    - Apollo/Core (= 0.9.3)
+  - Apollo/Core (0.9.3)
   - Contentful (3.1.2):
     - Interstellar (~> 2.2.0)
   - Crashlytics (3.10.7):
@@ -75,6 +78,7 @@ PODS:
 
 DEPENDENCIES:
   - AlamofireImage (~> 3.3)
+  - Apollo (~> 0.9.0)
   - Contentful (~> 3)
   - Crashlytics
   - DeepLinkKit
@@ -89,6 +93,7 @@ SPEC REPOS:
   https://github.com/cocoapods/specs.git:
     - Alamofire
     - AlamofireImage
+    - Apollo
     - Contentful
     - Crashlytics
     - DeepLinkKit
@@ -111,6 +116,7 @@ SPEC REPOS:
 SPEC CHECKSUMS:
   Alamofire: c7287b6e5d7da964a70935e5db17046b7fde6568
   AlamofireImage: 3b35b586853abaf94ca1250f4e94cff3c21a4c0d
+  Apollo: 38270f8bdc031ac07d4de3ec068a2289d7d287e0
   Contentful: 1a0f4e41c817c792457a6f2f76e77875ed64b667
   Crashlytics: ccaac42660eb9351b9960c0d66106b0bcf99f4fa
   DeepLinkKit: 98a26f2c5cf4c86b97c1170cdf3737ae49a3a50c
@@ -130,6 +136,6 @@ SPEC CHECKSUMS:
   Reachability: 33e18b67625424e47b6cde6d202dce689ad7af96
   SnowplowTracker: a4b9eff144099253bfaed31ede74447a48f9f02c
 
-PODFILE CHECKSUM: b07934f5823b29b5fd9d0c69f56519598827f828
+PODFILE CHECKSUM: 7ee30189bf335834a9802c6df9f10bbf750425a2
 
 COCOAPODS: 1.5.3

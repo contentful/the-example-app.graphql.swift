@@ -3,7 +3,7 @@ import Foundation
 import Contentful
 import Interstellar
 import DeepLinkKit
-
+import Apollo
 
 /// An enumeration to define what editorial state an entry or asset is in.
 ///
@@ -108,6 +108,9 @@ class ContentfulService {
 
     /// The client used to pull data from the Content Preview API.
     public let previewClient: Client
+
+    /// An instance of ApolloClient for interfacing with the Contentful GraphQL API.
+    public let graphQLClient: ApolloClient
 
     /// A method to change the state of the receiving service to enable/disable editorial features.
     ///
@@ -295,19 +298,24 @@ class ContentfulService {
         self.session = session
         self.credentials = credentials
 
-        self.deliveryClient = Client(spaceId: credentials.spaceId,
+        deliveryClient = Client(spaceId: credentials.spaceId,
                                      accessToken: credentials.deliveryAPIAccessToken,
                                      host: "cdn." + credentials.domainHost,
                                      contentTypeClasses: ContentfulService.contentTypeClasses)
 
         // This time, we configure the client to pull content from the Content Preview API.
-        self.previewClient = Client(spaceId: credentials.spaceId,
+        previewClient = Client(spaceId: credentials.spaceId,
                                     accessToken: credentials.previewAPIAccessToken,
                                     host: "preview." + credentials.domainHost,
                                     contentTypeClasses: ContentfulService.contentTypeClasses)
 
+        // GraphQL ApolloClient.
+        let urlSessionCongif: URLSessionConfiguration = .default
+        urlSessionCongif.httpAdditionalHeaders = ["Authorization": "Bearer \(credentials.deliveryAPIAccessToken)"]
+        let url = URL(string: "https://graphql.contentful.com/content/v1/spaces/\(credentials.spaceId)/environments/master")!
+        graphQLClient = ApolloClient(networkTransport: HTTPNetworkTransport(url: url, configuration: urlSessionCongif))
 
-        self.stateMachine = StateMachine<State>(initialState: state)
+        stateMachine = StateMachine<State>(initialState: state)
     }
 
     /// An array of all the content types that will be used by the apps instance of `ContentfulService`.

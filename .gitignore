@@ -9,3 +9,6 @@ xcuserdata
 # Fastlane
 /test_output
 
+# Environment
+.env
+

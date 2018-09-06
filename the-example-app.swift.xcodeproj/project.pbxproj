@@ -225,6 +225,8 @@
 		EDC6FB7F1FBCA5C0005738BE /* TableViewDataSources.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TableViewDataSources.swift; sourceTree = "<group>"; };
 		EDC6FB811FBCA706005738BE /* LoadingTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LoadingTableViewCell.swift; sourceTree = "<group>"; };
 		EDC6FB831FBCA758005738BE /* LoadingTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = LoadingTableViewCell.xib; sourceTree = "<group>"; };
+		EDC7BDF1214185D50048C897 /* TheExampleAppQueries.graphql */ = {isa = PBXFileReference; lastKnownFileType = text; path = TheExampleAppQueries.graphql; sourceTree = "<group>"; };
+		EDC7BDF2214185D50048C897 /* schema.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = schema.json; sourceTree = "<group>"; };
 		EDD2D9151FDAE81800DDA12C /* ResourceStatesTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResourceStatesTableViewCell.swift; sourceTree = "<group>"; };
 		EDD2D9171FDAEED300DDA12C /* ResourceStatesTableViewCell.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = ResourceStatesTableViewCell.xib; sourceTree = "<group>"; };
 		EDD486EE203F203500D81DDF /* en-US */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = "en-US"; path = "en-US.lproj/Localizable.strings"; sourceTree = "<group>"; };
@@ -430,6 +432,8 @@
 		EDC6FB2B1FBB25D9005738BE = {
 			isa = PBXGroup;
 			children = (
+				EDC7BDF2214185D50048C897 /* schema.json */,
+				EDC7BDF1214185D50048C897 /* TheExampleAppQueries.graphql */,
 				5D001E632004413800AC5A4C /* variables.xcconfig */,
 				EDC6FB671FBB30E9005738BE /* the-example-app.swift-Bridging-Header.h */,
 				EDC6FB361FBB25D9005738BE /* the-example-app.swift */,
@@ -679,6 +683,7 @@
 				"${SRCROOT}/Pods/Target Support Files/Pods-the-example-app.swift/Pods-the-example-app.swift-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
 				"${BUILT_PRODUCTS_DIR}/AlamofireImage/AlamofireImage.framework",
+				"${BUILT_PRODUCTS_DIR}/Apollo/Apollo.framework",
 				"${BUILT_PRODUCTS_DIR}/Contentful/Contentful.framework",
 				"${BUILT_PRODUCTS_DIR}/DeepLinkKit/DeepLinkKit.framework",
 				"${BUILT_PRODUCTS_DIR}/FMDB/FMDB.framework",
@@ -693,6 +698,7 @@
 			outputPaths = (
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Alamofire.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/AlamofireImage.framework",
+				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Apollo.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/Contentful.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/DeepLinkKit.framework",
 				"${TARGET_BUILD_DIR}/${FRAMEWORKS_FOLDER_PATH}/FMDB.framework",
