@@ -5,62 +5,6 @@ import Interstellar
 import DeepLinkKit
 import Apollo
 
-/// An enumeration to define what editorial state an entry or asset is in.
-///
-/// - upToDate: The resource is published: the entry has the exact same data when fetched from CDA as when fetched from CPA.
-/// - draft: The resource has not yet been published.
-/// - pendingChanges: The resource is published, but there are changes available in the CPA that are not yet available on the CDA.
-/// - draftAndPendingChanges: A composite state that a `Lesson` or a `HomeLayout` instance may have if any of it's linked modules has `draft` and `pendingChanges` states.
-enum ResourceState {
-    case upToDate
-    case draft
-    case pendingChanges
-    case draftAndPendingChanges
-}
-
-/// A resource which has it's state.
-protocol StatefulResource: class {
-    var state: ResourceState { get set }
-}
-
-extension Contentful.Locale: Equatable {}
-public func ==(lhs: Contentful.Locale, rhs: Contentful.Locale) -> Bool {
-    return lhs.code == rhs.code && lhs.name == rhs.name && lhs.fallbackLocaleCode == rhs.fallbackLocaleCode && lhs.isDefault == rhs.isDefault
-}
-
-extension Contentful.Locale {
-
-    /// The default locale of this application and of the associated space in Contentful.
-    static func americanEnglish() -> Contentful.Locale {
-        let jsonData = """
-        {
-            "code": "en-US",
-            "default": true,
-            "name": "English (United States)",
-            "fallbackCode": null
-        }
-        """.data(using: .utf8)!
-
-        let locale = try! JSONDecoder().decode(Contentful.Locale.self, from: jsonData)
-        return locale
-    }
-
-    static func german() -> Contentful.Locale {
-        let jsonData = """
-        {
-            "code": "de-DE",
-            "default": false,
-            "name": "German (Germany)",
-            "fallbackCode": "en-US"
-        }
-        """.data(using: .utf8)!
-        
-        let locale = try! JSONDecoder().decode(Contentful.Locale.self, from: jsonData)
-        return locale
-    }
-
-}
-
 /// ContentfulService is a type that this app uses to manage state related to Contentful such as which locale
 /// should be specified in API requests, and which API should be used: preview or delivery. It also adds some additional
 /// methods for "diff'ing" the results from the preview and delivery APIs so that the states of resources can be inferred.
