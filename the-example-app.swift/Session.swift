@@ -1,6 +1,5 @@
 
 import Foundation
-import Contentful
 
 extension TimeInterval {
     static let twoDays: TimeInterval = 172800
@@ -46,7 +45,7 @@ class Session {
 
         if let lastPersistDate = userDefaults.object(forKey: Session.lastTimeLocalePersistedKey) as? Date,
             Date().timeIntervalSince(lastPersistDate) > sessionExpirationWindow {
-            persistLocale(Contentful.Locale.americanEnglish())
+            persistLocale("en-US")
         }
 
         if let lastPersistDate = userDefaults.object(forKey: Session.lastTimeAPIPersistedKey) as? Date,
@@ -55,8 +54,8 @@ class Session {
         }
     }
 
-    public func persistLocale(_ locale: Contentful.Locale) {
-        userDefaults.set(locale.code, forKey: Session.contentfulLocaleKey)
+    public func persistLocale(_ locale: String) {
+        userDefaults.set(locale, forKey: Session.contentfulLocaleKey)
         userDefaults.set(Date(), forKey: Session.lastTimeLocalePersistedKey)
     }
 

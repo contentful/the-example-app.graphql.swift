@@ -2,7 +2,6 @@
 @testable import the_example_app_swift
 import XCTest
 import Nimble
-import Contentful
 
 let testUserDefaults = "TestDefaults"
 

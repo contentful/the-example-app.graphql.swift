@@ -4,12 +4,13 @@ import UIKit
 
 class LayoutHeroImageTableViewCell: UITableViewCell, CellConfigurable {
     
-    func configure(item: LayoutHeroImage) {
+    func configure(item: LayoutHeroImageFragment) {
         titleLabel.text = item.headline
 
-        if let backgroundImage = item.backgroundImage {
-            backgroundImageView.setImageToNaturalHeight(fromAsset: backgroundImage)
-        }
+        // TODO:
+//        if let backgroundImage = item.backgroundImage {
+//            backgroundImageView.setImageToNaturalHeight(fromAsset: backgroundImage)
+//        }
     }
 
     func resetAllContent() {
@@ -17,6 +18,7 @@ class LayoutHeroImageTableViewCell: UITableViewCell, CellConfigurable {
         backgroundImageView.image = nil
     }
 
+    
     override func awakeFromNib() {
         super.awakeFromNib()
         selectionStyle = .none

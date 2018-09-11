@@ -6,7 +6,7 @@ class CourseOverviewTableViewCell: UITableViewCell, CellConfigurable {
 
     struct Model {
         let contentfulService: ContentfulService
-        let course: Course
+        let course: CourseFragment
         let didTapStartCourseButton: (() -> Void)?
     }
 
@@ -18,56 +18,16 @@ class CourseOverviewTableViewCell: UITableViewCell, CellConfigurable {
 
         accessibilityLabel = "Course overview: \(item.course.title)"
 
-        if let description = item.course.courseDescription {
+        if let description = item.course.description {
             courseDescriptionTextView.attributedText = Markdown.attributedText(text: description)
             courseDescriptionTextView.sizeToFit()
         }
 
         if let duration = item.course.duration, let skillLevel = item.course.skillLevel {
-            detailsLabel.text = "\("durationLabel".localized(contentfulService: item.contentfulService)): \(duration) \("minutesLabel".localized(contentfulService: item.contentfulService)) • \("skillLevelLabel".localized(contentfulService: item.contentfulService)): \(skillLevel)"
+            detailsLabel.text = "\("durationLabel".localized()): \(duration) \("minutesLabel".localized()) • \("skillLevelLabel".localized()): \(skillLevel)"
         }
-        startCourseButton.setTitle("startCourseLabel".localized(contentfulService: item.contentfulService), for: .normal)
+        startCourseButton.setTitle("startCourseLabel".localized(), for: .normal)
 
-        if item.contentfulService.shouldShowResourceStateLabels {
-            switch item.course.state {
-            case .upToDate:
-                entryStatesContainerView.isHidden = true
-                entryStatesViewHeightConstraint.constant = 0.0
-
-                stackView.setCustomSpacing(0.0, after: entryStatesContainerView)
-
-            case .draft:
-                entryStatesContainerView.isHidden = false
-                trailingStateTextView.isHidden = true
-                leadingStateTextView.isHidden = false
-                entryStatesViewHeightConstraint.constant = 16.0
-                stackView.setCustomSpacing(4.0, after: entryStatesContainerView)
-
-                leadingStateTextView.showDraftState()
-
-            case .draftAndPendingChanges:
-                entryStatesContainerView.isHidden = false
-                trailingStateTextView.isHidden = false
-                leadingStateTextView.isHidden = false
-                entryStatesViewHeightConstraint.constant = 16.0
-                stackView.setCustomSpacing(4.0, after: entryStatesContainerView)
-
-                leadingStateTextView.showDraftState()
-                trailingStateTextView.showPendingChangesState()
-
-            case .pendingChanges:
-                entryStatesContainerView.isHidden = false
-                trailingStateTextView.isHidden = true
-                leadingStateTextView.isHidden = false
-                entryStatesViewHeightConstraint.constant = 16.0
-
-                stackView.setCustomSpacing(4.0, after: entryStatesContainerView)
-                leadingStateTextView.showPendingChangesState()
-            }
-        } else {
-            entryStatesViewHeightConstraint.constant = 0.0
-            stackView.setCustomSpacing(0.0, after: entryStatesContainerView)
-        }
         startCourseButton.isEnabled = item.course.hasLessons
         startCourseButton.alpha = item.course.hasLessons ? 1.0 : 0.5
     }
@@ -79,10 +39,6 @@ class CourseOverviewTableViewCell: UITableViewCell, CellConfigurable {
 
         courseDescriptionTextView.text = ""
         detailsLabel.text = nil
-
-        stackView.setCustomSpacing(0.0, after: entryStatesContainerView)
-        entryStatesContainerView.isHidden = true
-        entryStatesViewHeightConstraint.constant = 0.0
     }
 
     override func layoutSubviews() {
@@ -93,12 +49,9 @@ class CourseOverviewTableViewCell: UITableViewCell, CellConfigurable {
     override func awakeFromNib() {
         super.awakeFromNib()
         selectionStyle = .none
-        stackView.setCustomSpacing(4.0, after: entryStatesContainerView)
+        stackView.setCustomSpacing(4.0, after: courseTitleLabel)
         stackView.setCustomSpacing(8.0, after: detailsLabel)
     }
-
-    @IBOutlet weak var entryStatesContainerView: UIView!
-    @IBOutlet weak var entryStatesViewHeightConstraint: NSLayoutConstraint!
 
     @IBOutlet weak var stackView: UIStackView!
     

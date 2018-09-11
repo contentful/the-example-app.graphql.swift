@@ -5,10 +5,11 @@ import markymark
 
 class LessonCopyTableViewCell: UITableViewCell, CellConfigurable, UITextViewDelegate {
 
-    typealias ItemType = LessonCopy
+    typealias ItemType = LessonCopyFragment
 
-    func configure(item: LessonCopy) {
-        let attributedText = Markdown.attributedText(text: item.copy)
+    func configure(item: LessonCopyFragment) {
+        guard let copy = item.copy else { return }
+        let attributedText = Markdown.attributedText(text: copy)
         copyTextView.attributedText = attributedText
         copyTextView.sizeToFit()
     }

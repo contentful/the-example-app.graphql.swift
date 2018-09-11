@@ -4,18 +4,25 @@ import Apollo
 
 public final class HomeQuery: GraphQLQuery {
   public let operationDefinition =
-    "query Home {\n  layoutCollection(limit: 1) {\n    __typename\n    items {\n      __typename\n      title\n      slug\n      contentModulesCollection {\n        __typename\n        items {\n          __typename\n          ... on LayoutHighlightedCourse {\n            course {\n              __typename\n              ...HightlightedCourseFragment\n            }\n          }\n          ... on LayoutCopy {\n            title\n            headline\n            copy\n            ctaTitle\n            ctaLink\n            visualStyle\n          }\n          ... on LayoutHeroImage {\n            title\n            headline\n            backgroundImage {\n              __typename\n              url\n            }\n          }\n        }\n      }\n    }\n  }\n}"
+    "query Home($slug: String!) {\n  layoutCollection(where: {slug: $slug}) {\n    __typename\n    items {\n      __typename\n      ...LayoutFragment\n    }\n  }\n}"
 
-  public var queryDocument: String { return operationDefinition.appending(HightlightedCourseFragment.fragmentDefinition) }
+  public var queryDocument: String { return operationDefinition.appending(LayoutFragment.fragmentDefinition).appending(LayoutHighlightedCourseFragment.fragmentDefinition).appending(CourseFragment.fragmentDefinition).appending(AssetFragment.fragmentDefinition).appending(LessonFragment.fragmentDefinition).appending(LessonCodeSnippetFragment.fragmentDefinition).appending(LessonImageFragment.fragmentDefinition).appending(LessonCopyFragment.fragmentDefinition).appending(CategoryFragment.fragmentDefinition).appending(LayoutCopyFragment.fragmentDefinition).appending(LayoutHeroImageFragment.fragmentDefinition) }
 
-  public init() {
+  public var slug: String
+
+  public init(slug: String) {
+    self.slug = slug
+  }
+
+  public var variables: GraphQLMap? {
+    return ["slug": slug]
   }
 
   public struct Data: GraphQLSelectionSet {
     public static let possibleTypes = ["Query"]
 
     public static let selections: [GraphQLSelection] = [
-      GraphQLField("layoutCollection", arguments: ["limit": 1], type: .object(LayoutCollection.selections)),
+      GraphQLField("layoutCollection", arguments: ["where": ["slug": GraphQLVariable("slug")]], type: .object(LayoutCollection.selections)),
     ]
 
     public private(set) var resultMap: ResultMap
@@ -78,19 +85,13 @@ public final class HomeQuery: GraphQLQuery {
 
         public static let selections: [GraphQLSelection] = [
           GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-          GraphQLField("title", type: .scalar(String.self)),
-          GraphQLField("slug", type: .scalar(String.self)),
-          GraphQLField("contentModulesCollection", type: .object(ContentModulesCollection.selections)),
+          GraphQLFragmentSpread(LayoutFragment.self),
         ]
 
         public private(set) var resultMap: ResultMap
 
         public init(unsafeResultMap: ResultMap) {
           self.resultMap = unsafeResultMap
-        }
-
-        public init(title: String? = nil, slug: String? = nil, contentModulesCollection: ContentModulesCollection? = nil) {
-          self.init(unsafeResultMap: ["__typename": "Layout", "title": title, "slug": slug, "contentModulesCollection": contentModulesCollection.flatMap { (value: ContentModulesCollection) -> ResultMap in value.resultMap }])
         }
 
         public var __typename: String {
@@ -102,407 +103,28 @@ public final class HomeQuery: GraphQLQuery {
           }
         }
 
-        public var title: String? {
+        public var fragments: Fragments {
           get {
-            return resultMap["title"] as? String
+            return Fragments(unsafeResultMap: resultMap)
           }
           set {
-            resultMap.updateValue(newValue, forKey: "title")
+            resultMap += newValue.resultMap
           }
         }
 
-        public var slug: String? {
-          get {
-            return resultMap["slug"] as? String
-          }
-          set {
-            resultMap.updateValue(newValue, forKey: "slug")
-          }
-        }
-
-        public var contentModulesCollection: ContentModulesCollection? {
-          get {
-            return (resultMap["contentModulesCollection"] as? ResultMap).flatMap { ContentModulesCollection(unsafeResultMap: $0) }
-          }
-          set {
-            resultMap.updateValue(newValue?.resultMap, forKey: "contentModulesCollection")
-          }
-        }
-
-        public struct ContentModulesCollection: GraphQLSelectionSet {
-          public static let possibleTypes = ["LayoutContentModulesCollection"]
-
-          public static let selections: [GraphQLSelection] = [
-            GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-            GraphQLField("items", type: .nonNull(.list(.object(Item.selections)))),
-          ]
-
+        public struct Fragments {
           public private(set) var resultMap: ResultMap
 
           public init(unsafeResultMap: ResultMap) {
             self.resultMap = unsafeResultMap
           }
 
-          public init(items: [Item?]) {
-            self.init(unsafeResultMap: ["__typename": "LayoutContentModulesCollection", "items": items.map { (value: Item?) -> ResultMap? in value.flatMap { (value: Item) -> ResultMap in value.resultMap } }])
-          }
-
-          public var __typename: String {
+          public var layoutFragment: LayoutFragment {
             get {
-              return resultMap["__typename"]! as! String
+              return LayoutFragment(unsafeResultMap: resultMap)
             }
             set {
-              resultMap.updateValue(newValue, forKey: "__typename")
-            }
-          }
-
-          public var items: [Item?] {
-            get {
-              return (resultMap["items"] as! [ResultMap?]).map { (value: ResultMap?) -> Item? in value.flatMap { (value: ResultMap) -> Item in Item(unsafeResultMap: value) } }
-            }
-            set {
-              resultMap.updateValue(newValue.map { (value: Item?) -> ResultMap? in value.flatMap { (value: Item) -> ResultMap in value.resultMap } }, forKey: "items")
-            }
-          }
-
-          public struct Item: GraphQLSelectionSet {
-            public static let possibleTypes = ["LayoutCopy", "LayoutHeroImage", "LayoutHighlightedCourse"]
-
-            public static let selections: [GraphQLSelection] = [
-              GraphQLTypeCase(
-                variants: ["LayoutHighlightedCourse": AsLayoutHighlightedCourse.selections, "LayoutCopy": AsLayoutCopy.selections, "LayoutHeroImage": AsLayoutHeroImage.selections],
-                default: [
-                  GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-                ]
-              )
-            ]
-
-            public private(set) var resultMap: ResultMap
-
-            public init(unsafeResultMap: ResultMap) {
-              self.resultMap = unsafeResultMap
-            }
-
-            public static func makeLayoutHighlightedCourse(course: AsLayoutHighlightedCourse.Course? = nil) -> Item {
-              return Item(unsafeResultMap: ["__typename": "LayoutHighlightedCourse", "course": course.flatMap { (value: AsLayoutHighlightedCourse.Course) -> ResultMap in value.resultMap }])
-            }
-
-            public static func makeLayoutCopy(title: String? = nil, headline: String? = nil, copy: String? = nil, ctaTitle: String? = nil, ctaLink: String? = nil, visualStyle: String? = nil) -> Item {
-              return Item(unsafeResultMap: ["__typename": "LayoutCopy", "title": title, "headline": headline, "copy": copy, "ctaTitle": ctaTitle, "ctaLink": ctaLink, "visualStyle": visualStyle])
-            }
-
-            public static func makeLayoutHeroImage(title: String? = nil, headline: String? = nil, backgroundImage: AsLayoutHeroImage.BackgroundImage? = nil) -> Item {
-              return Item(unsafeResultMap: ["__typename": "LayoutHeroImage", "title": title, "headline": headline, "backgroundImage": backgroundImage.flatMap { (value: AsLayoutHeroImage.BackgroundImage) -> ResultMap in value.resultMap }])
-            }
-
-            public var __typename: String {
-              get {
-                return resultMap["__typename"]! as! String
-              }
-              set {
-                resultMap.updateValue(newValue, forKey: "__typename")
-              }
-            }
-
-            public var asLayoutHighlightedCourse: AsLayoutHighlightedCourse? {
-              get {
-                if !AsLayoutHighlightedCourse.possibleTypes.contains(__typename) { return nil }
-                return AsLayoutHighlightedCourse(unsafeResultMap: resultMap)
-              }
-              set {
-                guard let newValue = newValue else { return }
-                resultMap = newValue.resultMap
-              }
-            }
-
-            public struct AsLayoutHighlightedCourse: GraphQLSelectionSet {
-              public static let possibleTypes = ["LayoutHighlightedCourse"]
-
-              public static let selections: [GraphQLSelection] = [
-                GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-                GraphQLField("course", type: .object(Course.selections)),
-              ]
-
-              public private(set) var resultMap: ResultMap
-
-              public init(unsafeResultMap: ResultMap) {
-                self.resultMap = unsafeResultMap
-              }
-
-              public init(course: Course? = nil) {
-                self.init(unsafeResultMap: ["__typename": "LayoutHighlightedCourse", "course": course.flatMap { (value: Course) -> ResultMap in value.resultMap }])
-              }
-
-              public var __typename: String {
-                get {
-                  return resultMap["__typename"]! as! String
-                }
-                set {
-                  resultMap.updateValue(newValue, forKey: "__typename")
-                }
-              }
-
-              public var course: Course? {
-                get {
-                  return (resultMap["course"] as? ResultMap).flatMap { Course(unsafeResultMap: $0) }
-                }
-                set {
-                  resultMap.updateValue(newValue?.resultMap, forKey: "course")
-                }
-              }
-
-              public struct Course: GraphQLSelectionSet {
-                public static let possibleTypes = ["Course"]
-
-                public static let selections: [GraphQLSelection] = [
-                  GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-                  GraphQLFragmentSpread(HightlightedCourseFragment.self),
-                ]
-
-                public private(set) var resultMap: ResultMap
-
-                public init(unsafeResultMap: ResultMap) {
-                  self.resultMap = unsafeResultMap
-                }
-
-                public var __typename: String {
-                  get {
-                    return resultMap["__typename"]! as! String
-                  }
-                  set {
-                    resultMap.updateValue(newValue, forKey: "__typename")
-                  }
-                }
-
-                public var fragments: Fragments {
-                  get {
-                    return Fragments(unsafeResultMap: resultMap)
-                  }
-                  set {
-                    resultMap += newValue.resultMap
-                  }
-                }
-
-                public struct Fragments {
-                  public private(set) var resultMap: ResultMap
-
-                  public init(unsafeResultMap: ResultMap) {
-                    self.resultMap = unsafeResultMap
-                  }
-
-                  public var hightlightedCourseFragment: HightlightedCourseFragment {
-                    get {
-                      return HightlightedCourseFragment(unsafeResultMap: resultMap)
-                    }
-                    set {
-                      resultMap += newValue.resultMap
-                    }
-                  }
-                }
-              }
-            }
-
-            public var asLayoutCopy: AsLayoutCopy? {
-              get {
-                if !AsLayoutCopy.possibleTypes.contains(__typename) { return nil }
-                return AsLayoutCopy(unsafeResultMap: resultMap)
-              }
-              set {
-                guard let newValue = newValue else { return }
-                resultMap = newValue.resultMap
-              }
-            }
-
-            public struct AsLayoutCopy: GraphQLSelectionSet {
-              public static let possibleTypes = ["LayoutCopy"]
-
-              public static let selections: [GraphQLSelection] = [
-                GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-                GraphQLField("title", type: .scalar(String.self)),
-                GraphQLField("headline", type: .scalar(String.self)),
-                GraphQLField("copy", type: .scalar(String.self)),
-                GraphQLField("ctaTitle", type: .scalar(String.self)),
-                GraphQLField("ctaLink", type: .scalar(String.self)),
-                GraphQLField("visualStyle", type: .scalar(String.self)),
-              ]
-
-              public private(set) var resultMap: ResultMap
-
-              public init(unsafeResultMap: ResultMap) {
-                self.resultMap = unsafeResultMap
-              }
-
-              public init(title: String? = nil, headline: String? = nil, copy: String? = nil, ctaTitle: String? = nil, ctaLink: String? = nil, visualStyle: String? = nil) {
-                self.init(unsafeResultMap: ["__typename": "LayoutCopy", "title": title, "headline": headline, "copy": copy, "ctaTitle": ctaTitle, "ctaLink": ctaLink, "visualStyle": visualStyle])
-              }
-
-              public var __typename: String {
-                get {
-                  return resultMap["__typename"]! as! String
-                }
-                set {
-                  resultMap.updateValue(newValue, forKey: "__typename")
-                }
-              }
-
-              public var title: String? {
-                get {
-                  return resultMap["title"] as? String
-                }
-                set {
-                  resultMap.updateValue(newValue, forKey: "title")
-                }
-              }
-
-              public var headline: String? {
-                get {
-                  return resultMap["headline"] as? String
-                }
-                set {
-                  resultMap.updateValue(newValue, forKey: "headline")
-                }
-              }
-
-              public var copy: String? {
-                get {
-                  return resultMap["copy"] as? String
-                }
-                set {
-                  resultMap.updateValue(newValue, forKey: "copy")
-                }
-              }
-
-              public var ctaTitle: String? {
-                get {
-                  return resultMap["ctaTitle"] as? String
-                }
-                set {
-                  resultMap.updateValue(newValue, forKey: "ctaTitle")
-                }
-              }
-
-              public var ctaLink: String? {
-                get {
-                  return resultMap["ctaLink"] as? String
-                }
-                set {
-                  resultMap.updateValue(newValue, forKey: "ctaLink")
-                }
-              }
-
-              public var visualStyle: String? {
-                get {
-                  return resultMap["visualStyle"] as? String
-                }
-                set {
-                  resultMap.updateValue(newValue, forKey: "visualStyle")
-                }
-              }
-            }
-
-            public var asLayoutHeroImage: AsLayoutHeroImage? {
-              get {
-                if !AsLayoutHeroImage.possibleTypes.contains(__typename) { return nil }
-                return AsLayoutHeroImage(unsafeResultMap: resultMap)
-              }
-              set {
-                guard let newValue = newValue else { return }
-                resultMap = newValue.resultMap
-              }
-            }
-
-            public struct AsLayoutHeroImage: GraphQLSelectionSet {
-              public static let possibleTypes = ["LayoutHeroImage"]
-
-              public static let selections: [GraphQLSelection] = [
-                GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-                GraphQLField("title", type: .scalar(String.self)),
-                GraphQLField("headline", type: .scalar(String.self)),
-                GraphQLField("backgroundImage", type: .object(BackgroundImage.selections)),
-              ]
-
-              public private(set) var resultMap: ResultMap
-
-              public init(unsafeResultMap: ResultMap) {
-                self.resultMap = unsafeResultMap
-              }
-
-              public init(title: String? = nil, headline: String? = nil, backgroundImage: BackgroundImage? = nil) {
-                self.init(unsafeResultMap: ["__typename": "LayoutHeroImage", "title": title, "headline": headline, "backgroundImage": backgroundImage.flatMap { (value: BackgroundImage) -> ResultMap in value.resultMap }])
-              }
-
-              public var __typename: String {
-                get {
-                  return resultMap["__typename"]! as! String
-                }
-                set {
-                  resultMap.updateValue(newValue, forKey: "__typename")
-                }
-              }
-
-              public var title: String? {
-                get {
-                  return resultMap["title"] as? String
-                }
-                set {
-                  resultMap.updateValue(newValue, forKey: "title")
-                }
-              }
-
-              public var headline: String? {
-                get {
-                  return resultMap["headline"] as? String
-                }
-                set {
-                  resultMap.updateValue(newValue, forKey: "headline")
-                }
-              }
-
-              public var backgroundImage: BackgroundImage? {
-                get {
-                  return (resultMap["backgroundImage"] as? ResultMap).flatMap { BackgroundImage(unsafeResultMap: $0) }
-                }
-                set {
-                  resultMap.updateValue(newValue?.resultMap, forKey: "backgroundImage")
-                }
-              }
-
-              public struct BackgroundImage: GraphQLSelectionSet {
-                public static let possibleTypes = ["Asset"]
-
-                public static let selections: [GraphQLSelection] = [
-                  GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-                  GraphQLField("url", type: .scalar(String.self)),
-                ]
-
-                public private(set) var resultMap: ResultMap
-
-                public init(unsafeResultMap: ResultMap) {
-                  self.resultMap = unsafeResultMap
-                }
-
-                public init(url: String? = nil) {
-                  self.init(unsafeResultMap: ["__typename": "Asset", "url": url])
-                }
-
-                public var __typename: String {
-                  get {
-                    return resultMap["__typename"]! as! String
-                  }
-                  set {
-                    resultMap.updateValue(newValue, forKey: "__typename")
-                  }
-                }
-
-                public var url: String? {
-                  get {
-                    return resultMap["url"] as? String
-                  }
-                  set {
-                    resultMap.updateValue(newValue, forKey: "url")
-                  }
-                }
-              }
+              resultMap += newValue.resultMap
             }
           }
         }
@@ -515,7 +137,7 @@ public final class CourseBySlugQuery: GraphQLQuery {
   public let operationDefinition =
     "query CourseBySlug($slug: String!) {\n  courseCollection(where: {slug: $slug}) {\n    __typename\n    items {\n      __typename\n      ...CourseFragment\n    }\n  }\n}"
 
-  public var queryDocument: String { return operationDefinition.appending(CourseFragment.fragmentDefinition).appending(LessonFragment.fragmentDefinition).appending(LessonCodeSnippetFragment.fragmentDefinition).appending(LessonImageFragment.fragmentDefinition).appending(LessonCopyFragment.fragmentDefinition).appending(CategoryFragment.fragmentDefinition) }
+  public var queryDocument: String { return operationDefinition.appending(CourseFragment.fragmentDefinition).appending(AssetFragment.fragmentDefinition).appending(LessonFragment.fragmentDefinition).appending(LessonCodeSnippetFragment.fragmentDefinition).appending(LessonImageFragment.fragmentDefinition).appending(LessonCopyFragment.fragmentDefinition).appending(CategoryFragment.fragmentDefinition) }
 
   public var slug: String
 
@@ -642,11 +264,11 @@ public final class CourseBySlugQuery: GraphQLQuery {
   }
 }
 
-public final class CoursesOfCategoryIdQuery: GraphQLQuery {
+public final class CoursesByCategoryWithIdQuery: GraphQLQuery {
   public let operationDefinition =
-    "query CoursesOfCategoryId($categoryId: String!) {\n  category(id: $categoryId) {\n    __typename\n    linkedFrom {\n      __typename\n      entryCollection {\n        __typename\n        items {\n          __typename\n          ...CourseFragment\n        }\n      }\n    }\n  }\n}"
+    "query CoursesByCategoryWithId($categoryId: String!) {\n  category(id: $categoryId) {\n    __typename\n    linkedFrom {\n      __typename\n      entryCollection {\n        __typename\n        items {\n          __typename\n          ...CourseFragment\n        }\n      }\n    }\n  }\n}"
 
-  public var queryDocument: String { return operationDefinition.appending(CourseFragment.fragmentDefinition).appending(LessonFragment.fragmentDefinition).appending(LessonCodeSnippetFragment.fragmentDefinition).appending(LessonImageFragment.fragmentDefinition).appending(LessonCopyFragment.fragmentDefinition).appending(CategoryFragment.fragmentDefinition) }
+  public var queryDocument: String { return operationDefinition.appending(CourseFragment.fragmentDefinition).appending(AssetFragment.fragmentDefinition).appending(LessonFragment.fragmentDefinition).appending(LessonCodeSnippetFragment.fragmentDefinition).appending(LessonImageFragment.fragmentDefinition).appending(LessonCopyFragment.fragmentDefinition).appending(CategoryFragment.fragmentDefinition) }
 
   public var categoryId: String
 
@@ -793,7 +415,7 @@ public final class CoursesOfCategoryIdQuery: GraphQLQuery {
           }
 
           public struct Item: GraphQLSelectionSet {
-            public static let possibleTypes = ["Course", "Lesson", "LessonCodeSnippets", "LessonCopy", "LessonImage", "Category", "LayoutCopy", "LayoutHeroImage", "LayoutHighlightedCourse", "Layout"]
+            public static let possibleTypes = ["Course", "LayoutHighlightedCourse", "Layout", "LayoutCopy", "LayoutHeroImage", "LessonImage", "Lesson", "LessonCodeSnippets", "LessonCopy", "Category"]
 
             public static let selections: [GraphQLSelection] = [
               GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
@@ -804,6 +426,26 @@ public final class CoursesOfCategoryIdQuery: GraphQLQuery {
 
             public init(unsafeResultMap: ResultMap) {
               self.resultMap = unsafeResultMap
+            }
+
+            public static func makeLayoutHighlightedCourse() -> Item {
+              return Item(unsafeResultMap: ["__typename": "LayoutHighlightedCourse"])
+            }
+
+            public static func makeLayout() -> Item {
+              return Item(unsafeResultMap: ["__typename": "Layout"])
+            }
+
+            public static func makeLayoutCopy() -> Item {
+              return Item(unsafeResultMap: ["__typename": "LayoutCopy"])
+            }
+
+            public static func makeLayoutHeroImage() -> Item {
+              return Item(unsafeResultMap: ["__typename": "LayoutHeroImage"])
+            }
+
+            public static func makeLessonImage() -> Item {
+              return Item(unsafeResultMap: ["__typename": "LessonImage"])
             }
 
             public static func makeLesson() -> Item {
@@ -818,28 +460,8 @@ public final class CoursesOfCategoryIdQuery: GraphQLQuery {
               return Item(unsafeResultMap: ["__typename": "LessonCopy"])
             }
 
-            public static func makeLessonImage() -> Item {
-              return Item(unsafeResultMap: ["__typename": "LessonImage"])
-            }
-
             public static func makeCategory() -> Item {
               return Item(unsafeResultMap: ["__typename": "Category"])
-            }
-
-            public static func makeLayoutCopy() -> Item {
-              return Item(unsafeResultMap: ["__typename": "LayoutCopy"])
-            }
-
-            public static func makeLayoutHeroImage() -> Item {
-              return Item(unsafeResultMap: ["__typename": "LayoutHeroImage"])
-            }
-
-            public static func makeLayoutHighlightedCourse() -> Item {
-              return Item(unsafeResultMap: ["__typename": "LayoutHighlightedCourse"])
-            }
-
-            public static func makeLayout() -> Item {
-              return Item(unsafeResultMap: ["__typename": "Layout"])
             }
 
             public var __typename: String {
@@ -889,7 +511,7 @@ public final class CoursesQuery: GraphQLQuery {
   public let operationDefinition =
     "query Courses {\n  courseCollection {\n    __typename\n    items {\n      __typename\n      ...CourseFragment\n    }\n  }\n}"
 
-  public var queryDocument: String { return operationDefinition.appending(CourseFragment.fragmentDefinition).appending(LessonFragment.fragmentDefinition).appending(LessonCodeSnippetFragment.fragmentDefinition).appending(LessonImageFragment.fragmentDefinition).appending(LessonCopyFragment.fragmentDefinition).appending(CategoryFragment.fragmentDefinition) }
+  public var queryDocument: String { return operationDefinition.appending(CourseFragment.fragmentDefinition).appending(AssetFragment.fragmentDefinition).appending(LessonFragment.fragmentDefinition).appending(LessonCodeSnippetFragment.fragmentDefinition).appending(LessonImageFragment.fragmentDefinition).appending(LessonCopyFragment.fragmentDefinition).appending(CategoryFragment.fragmentDefinition) }
 
   public init() {
   }
@@ -1133,19 +755,17 @@ public final class CategoriesQuery: GraphQLQuery {
   }
 }
 
-public struct HightlightedCourseFragment: GraphQLFragment {
+public struct LayoutFragment: GraphQLFragment {
   public static let fragmentDefinition =
-    "fragment HightlightedCourseFragment on Course {\n  __typename\n  sys {\n    __typename\n    id\n  }\n  slug\n  title\n  shortDescription\n  image {\n    __typename\n    url\n  }\n}"
+    "fragment LayoutFragment on Layout {\n  __typename\n  title\n  slug\n  contentModulesCollection {\n    __typename\n    items {\n      __typename\n      ...LayoutHighlightedCourseFragment\n      ...LayoutCopyFragment\n      ...LayoutHeroImageFragment\n    }\n  }\n}"
 
-  public static let possibleTypes = ["Course"]
+  public static let possibleTypes = ["Layout"]
 
   public static let selections: [GraphQLSelection] = [
     GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-    GraphQLField("sys", type: .nonNull(.object(Sy.selections))),
-    GraphQLField("slug", type: .scalar(String.self)),
     GraphQLField("title", type: .scalar(String.self)),
-    GraphQLField("shortDescription", type: .scalar(String.self)),
-    GraphQLField("image", type: .object(Image.selections)),
+    GraphQLField("slug", type: .scalar(String.self)),
+    GraphQLField("contentModulesCollection", type: .object(ContentModulesCollection.selections)),
   ]
 
   public private(set) var resultMap: ResultMap
@@ -1154,8 +774,479 @@ public struct HightlightedCourseFragment: GraphQLFragment {
     self.resultMap = unsafeResultMap
   }
 
-  public init(sys: Sy, slug: String? = nil, title: String? = nil, shortDescription: String? = nil, image: Image? = nil) {
-    self.init(unsafeResultMap: ["__typename": "Course", "sys": sys.resultMap, "slug": slug, "title": title, "shortDescription": shortDescription, "image": image.flatMap { (value: Image) -> ResultMap in value.resultMap }])
+  public init(title: String? = nil, slug: String? = nil, contentModulesCollection: ContentModulesCollection? = nil) {
+    self.init(unsafeResultMap: ["__typename": "Layout", "title": title, "slug": slug, "contentModulesCollection": contentModulesCollection.flatMap { (value: ContentModulesCollection) -> ResultMap in value.resultMap }])
+  }
+
+  public var __typename: String {
+    get {
+      return resultMap["__typename"]! as! String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "__typename")
+    }
+  }
+
+  public var title: String? {
+    get {
+      return resultMap["title"] as? String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "title")
+    }
+  }
+
+  public var slug: String? {
+    get {
+      return resultMap["slug"] as? String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "slug")
+    }
+  }
+
+  public var contentModulesCollection: ContentModulesCollection? {
+    get {
+      return (resultMap["contentModulesCollection"] as? ResultMap).flatMap { ContentModulesCollection(unsafeResultMap: $0) }
+    }
+    set {
+      resultMap.updateValue(newValue?.resultMap, forKey: "contentModulesCollection")
+    }
+  }
+
+  public struct ContentModulesCollection: GraphQLSelectionSet {
+    public static let possibleTypes = ["LayoutContentModulesCollection"]
+
+    public static let selections: [GraphQLSelection] = [
+      GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+      GraphQLField("items", type: .nonNull(.list(.object(Item.selections)))),
+    ]
+
+    public private(set) var resultMap: ResultMap
+
+    public init(unsafeResultMap: ResultMap) {
+      self.resultMap = unsafeResultMap
+    }
+
+    public init(items: [Item?]) {
+      self.init(unsafeResultMap: ["__typename": "LayoutContentModulesCollection", "items": items.map { (value: Item?) -> ResultMap? in value.flatMap { (value: Item) -> ResultMap in value.resultMap } }])
+    }
+
+    public var __typename: String {
+      get {
+        return resultMap["__typename"]! as! String
+      }
+      set {
+        resultMap.updateValue(newValue, forKey: "__typename")
+      }
+    }
+
+    public var items: [Item?] {
+      get {
+        return (resultMap["items"] as! [ResultMap?]).map { (value: ResultMap?) -> Item? in value.flatMap { (value: ResultMap) -> Item in Item(unsafeResultMap: value) } }
+      }
+      set {
+        resultMap.updateValue(newValue.map { (value: Item?) -> ResultMap? in value.flatMap { (value: Item) -> ResultMap in value.resultMap } }, forKey: "items")
+      }
+    }
+
+    public struct Item: GraphQLSelectionSet {
+      public static let possibleTypes = ["LayoutCopy", "LayoutHeroImage", "LayoutHighlightedCourse"]
+
+      public static let selections: [GraphQLSelection] = [
+        GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+        GraphQLFragmentSpread(LayoutHighlightedCourseFragment.self),
+        GraphQLFragmentSpread(LayoutCopyFragment.self),
+        GraphQLFragmentSpread(LayoutHeroImageFragment.self),
+      ]
+
+      public private(set) var resultMap: ResultMap
+
+      public init(unsafeResultMap: ResultMap) {
+        self.resultMap = unsafeResultMap
+      }
+
+      public static func makeLayoutCopy(title: String? = nil, headline: String? = nil, copy: String? = nil, ctaTitle: String? = nil, ctaLink: String? = nil, visualStyle: String? = nil) -> Item {
+        return Item(unsafeResultMap: ["__typename": "LayoutCopy", "title": title, "headline": headline, "copy": copy, "ctaTitle": ctaTitle, "ctaLink": ctaLink, "visualStyle": visualStyle])
+      }
+
+      public var __typename: String {
+        get {
+          return resultMap["__typename"]! as! String
+        }
+        set {
+          resultMap.updateValue(newValue, forKey: "__typename")
+        }
+      }
+
+      public var fragments: Fragments {
+        get {
+          return Fragments(unsafeResultMap: resultMap)
+        }
+        set {
+          resultMap += newValue.resultMap
+        }
+      }
+
+      public struct Fragments {
+        public private(set) var resultMap: ResultMap
+
+        public init(unsafeResultMap: ResultMap) {
+          self.resultMap = unsafeResultMap
+        }
+
+        public var layoutHighlightedCourseFragment: LayoutHighlightedCourseFragment? {
+          get {
+            if !LayoutHighlightedCourseFragment.possibleTypes.contains(resultMap["__typename"]! as! String) { return nil }
+            return LayoutHighlightedCourseFragment(unsafeResultMap: resultMap)
+          }
+          set {
+            guard let newValue = newValue else { return }
+            resultMap += newValue.resultMap
+          }
+        }
+
+        public var layoutCopyFragment: LayoutCopyFragment? {
+          get {
+            if !LayoutCopyFragment.possibleTypes.contains(resultMap["__typename"]! as! String) { return nil }
+            return LayoutCopyFragment(unsafeResultMap: resultMap)
+          }
+          set {
+            guard let newValue = newValue else { return }
+            resultMap += newValue.resultMap
+          }
+        }
+
+        public var layoutHeroImageFragment: LayoutHeroImageFragment? {
+          get {
+            if !LayoutHeroImageFragment.possibleTypes.contains(resultMap["__typename"]! as! String) { return nil }
+            return LayoutHeroImageFragment(unsafeResultMap: resultMap)
+          }
+          set {
+            guard let newValue = newValue else { return }
+            resultMap += newValue.resultMap
+          }
+        }
+      }
+    }
+  }
+}
+
+public struct LayoutHighlightedCourseFragment: GraphQLFragment {
+  public static let fragmentDefinition =
+    "fragment LayoutHighlightedCourseFragment on LayoutHighlightedCourse {\n  __typename\n  course {\n    __typename\n    ...CourseFragment\n  }\n}"
+
+  public static let possibleTypes = ["LayoutHighlightedCourse"]
+
+  public static let selections: [GraphQLSelection] = [
+    GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+    GraphQLField("course", type: .object(Course.selections)),
+  ]
+
+  public private(set) var resultMap: ResultMap
+
+  public init(unsafeResultMap: ResultMap) {
+    self.resultMap = unsafeResultMap
+  }
+
+  public init(course: Course? = nil) {
+    self.init(unsafeResultMap: ["__typename": "LayoutHighlightedCourse", "course": course.flatMap { (value: Course) -> ResultMap in value.resultMap }])
+  }
+
+  public var __typename: String {
+    get {
+      return resultMap["__typename"]! as! String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "__typename")
+    }
+  }
+
+  public var course: Course? {
+    get {
+      return (resultMap["course"] as? ResultMap).flatMap { Course(unsafeResultMap: $0) }
+    }
+    set {
+      resultMap.updateValue(newValue?.resultMap, forKey: "course")
+    }
+  }
+
+  public struct Course: GraphQLSelectionSet {
+    public static let possibleTypes = ["Course"]
+
+    public static let selections: [GraphQLSelection] = [
+      GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+      GraphQLFragmentSpread(CourseFragment.self),
+    ]
+
+    public private(set) var resultMap: ResultMap
+
+    public init(unsafeResultMap: ResultMap) {
+      self.resultMap = unsafeResultMap
+    }
+
+    public var __typename: String {
+      get {
+        return resultMap["__typename"]! as! String
+      }
+      set {
+        resultMap.updateValue(newValue, forKey: "__typename")
+      }
+    }
+
+    public var fragments: Fragments {
+      get {
+        return Fragments(unsafeResultMap: resultMap)
+      }
+      set {
+        resultMap += newValue.resultMap
+      }
+    }
+
+    public struct Fragments {
+      public private(set) var resultMap: ResultMap
+
+      public init(unsafeResultMap: ResultMap) {
+        self.resultMap = unsafeResultMap
+      }
+
+      public var courseFragment: CourseFragment {
+        get {
+          return CourseFragment(unsafeResultMap: resultMap)
+        }
+        set {
+          resultMap += newValue.resultMap
+        }
+      }
+    }
+  }
+}
+
+public struct LayoutHeroImageFragment: GraphQLFragment {
+  public static let fragmentDefinition =
+    "fragment LayoutHeroImageFragment on LayoutHeroImage {\n  __typename\n  title\n  headline\n  backgroundImage {\n    __typename\n    ...AssetFragment\n  }\n}"
+
+  public static let possibleTypes = ["LayoutHeroImage"]
+
+  public static let selections: [GraphQLSelection] = [
+    GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+    GraphQLField("title", type: .scalar(String.self)),
+    GraphQLField("headline", type: .scalar(String.self)),
+    GraphQLField("backgroundImage", type: .object(BackgroundImage.selections)),
+  ]
+
+  public private(set) var resultMap: ResultMap
+
+  public init(unsafeResultMap: ResultMap) {
+    self.resultMap = unsafeResultMap
+  }
+
+  public init(title: String? = nil, headline: String? = nil, backgroundImage: BackgroundImage? = nil) {
+    self.init(unsafeResultMap: ["__typename": "LayoutHeroImage", "title": title, "headline": headline, "backgroundImage": backgroundImage.flatMap { (value: BackgroundImage) -> ResultMap in value.resultMap }])
+  }
+
+  public var __typename: String {
+    get {
+      return resultMap["__typename"]! as! String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "__typename")
+    }
+  }
+
+  public var title: String? {
+    get {
+      return resultMap["title"] as? String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "title")
+    }
+  }
+
+  public var headline: String? {
+    get {
+      return resultMap["headline"] as? String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "headline")
+    }
+  }
+
+  public var backgroundImage: BackgroundImage? {
+    get {
+      return (resultMap["backgroundImage"] as? ResultMap).flatMap { BackgroundImage(unsafeResultMap: $0) }
+    }
+    set {
+      resultMap.updateValue(newValue?.resultMap, forKey: "backgroundImage")
+    }
+  }
+
+  public struct BackgroundImage: GraphQLSelectionSet {
+    public static let possibleTypes = ["Asset"]
+
+    public static let selections: [GraphQLSelection] = [
+      GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+      GraphQLFragmentSpread(AssetFragment.self),
+    ]
+
+    public private(set) var resultMap: ResultMap
+
+    public init(unsafeResultMap: ResultMap) {
+      self.resultMap = unsafeResultMap
+    }
+
+    public var __typename: String {
+      get {
+        return resultMap["__typename"]! as! String
+      }
+      set {
+        resultMap.updateValue(newValue, forKey: "__typename")
+      }
+    }
+
+    public var fragments: Fragments {
+      get {
+        return Fragments(unsafeResultMap: resultMap)
+      }
+      set {
+        resultMap += newValue.resultMap
+      }
+    }
+
+    public struct Fragments {
+      public private(set) var resultMap: ResultMap
+
+      public init(unsafeResultMap: ResultMap) {
+        self.resultMap = unsafeResultMap
+      }
+
+      public var assetFragment: AssetFragment {
+        get {
+          return AssetFragment(unsafeResultMap: resultMap)
+        }
+        set {
+          resultMap += newValue.resultMap
+        }
+      }
+    }
+  }
+}
+
+public struct LayoutCopyFragment: GraphQLFragment {
+  public static let fragmentDefinition =
+    "fragment LayoutCopyFragment on LayoutCopy {\n  __typename\n  title\n  headline\n  copy\n  ctaTitle\n  ctaLink\n  visualStyle\n}"
+
+  public static let possibleTypes = ["LayoutCopy"]
+
+  public static let selections: [GraphQLSelection] = [
+    GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+    GraphQLField("title", type: .scalar(String.self)),
+    GraphQLField("headline", type: .scalar(String.self)),
+    GraphQLField("copy", type: .scalar(String.self)),
+    GraphQLField("ctaTitle", type: .scalar(String.self)),
+    GraphQLField("ctaLink", type: .scalar(String.self)),
+    GraphQLField("visualStyle", type: .scalar(String.self)),
+  ]
+
+  public private(set) var resultMap: ResultMap
+
+  public init(unsafeResultMap: ResultMap) {
+    self.resultMap = unsafeResultMap
+  }
+
+  public init(title: String? = nil, headline: String? = nil, copy: String? = nil, ctaTitle: String? = nil, ctaLink: String? = nil, visualStyle: String? = nil) {
+    self.init(unsafeResultMap: ["__typename": "LayoutCopy", "title": title, "headline": headline, "copy": copy, "ctaTitle": ctaTitle, "ctaLink": ctaLink, "visualStyle": visualStyle])
+  }
+
+  public var __typename: String {
+    get {
+      return resultMap["__typename"]! as! String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "__typename")
+    }
+  }
+
+  public var title: String? {
+    get {
+      return resultMap["title"] as? String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "title")
+    }
+  }
+
+  public var headline: String? {
+    get {
+      return resultMap["headline"] as? String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "headline")
+    }
+  }
+
+  public var copy: String? {
+    get {
+      return resultMap["copy"] as? String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "copy")
+    }
+  }
+
+  public var ctaTitle: String? {
+    get {
+      return resultMap["ctaTitle"] as? String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "ctaTitle")
+    }
+  }
+
+  public var ctaLink: String? {
+    get {
+      return resultMap["ctaLink"] as? String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "ctaLink")
+    }
+  }
+
+  public var visualStyle: String? {
+    get {
+      return resultMap["visualStyle"] as? String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "visualStyle")
+    }
+  }
+}
+
+public struct AssetFragment: GraphQLFragment {
+  public static let fragmentDefinition =
+    "fragment AssetFragment on Asset {\n  __typename\n  sys {\n    __typename\n    id\n  }\n  title\n  description\n  url\n  width\n  contentType\n  fileName\n}"
+
+  public static let possibleTypes = ["Asset"]
+
+  public static let selections: [GraphQLSelection] = [
+    GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+    GraphQLField("sys", type: .nonNull(.object(Sy.selections))),
+    GraphQLField("title", type: .scalar(String.self)),
+    GraphQLField("description", type: .scalar(String.self)),
+    GraphQLField("url", type: .scalar(String.self)),
+    GraphQLField("width", type: .scalar(Int.self)),
+    GraphQLField("contentType", type: .scalar(String.self)),
+    GraphQLField("fileName", type: .scalar(String.self)),
+  ]
+
+  public private(set) var resultMap: ResultMap
+
+  public init(unsafeResultMap: ResultMap) {
+    self.resultMap = unsafeResultMap
+  }
+
+  public init(sys: Sy, title: String? = nil, description: String? = nil, url: String? = nil, width: Int? = nil, contentType: String? = nil, fileName: String? = nil) {
+    self.init(unsafeResultMap: ["__typename": "Asset", "sys": sys.resultMap, "title": title, "description": description, "url": url, "width": width, "contentType": contentType, "fileName": fileName])
   }
 
   public var __typename: String {
@@ -1176,15 +1267,6 @@ public struct HightlightedCourseFragment: GraphQLFragment {
     }
   }
 
-  public var slug: String? {
-    get {
-      return resultMap["slug"] as? String
-    }
-    set {
-      resultMap.updateValue(newValue, forKey: "slug")
-    }
-  }
-
   public var title: String? {
     get {
       return resultMap["title"] as? String
@@ -1194,21 +1276,48 @@ public struct HightlightedCourseFragment: GraphQLFragment {
     }
   }
 
-  public var shortDescription: String? {
+  public var description: String? {
     get {
-      return resultMap["shortDescription"] as? String
+      return resultMap["description"] as? String
     }
     set {
-      resultMap.updateValue(newValue, forKey: "shortDescription")
+      resultMap.updateValue(newValue, forKey: "description")
     }
   }
 
-  public var image: Image? {
+  public var url: String? {
     get {
-      return (resultMap["image"] as? ResultMap).flatMap { Image(unsafeResultMap: $0) }
+      return resultMap["url"] as? String
     }
     set {
-      resultMap.updateValue(newValue?.resultMap, forKey: "image")
+      resultMap.updateValue(newValue, forKey: "url")
+    }
+  }
+
+  public var width: Int? {
+    get {
+      return resultMap["width"] as? Int
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "width")
+    }
+  }
+
+  public var contentType: String? {
+    get {
+      return resultMap["contentType"] as? String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "contentType")
+    }
+  }
+
+  public var fileName: String? {
+    get {
+      return resultMap["fileName"] as? String
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "fileName")
     }
   }
 
@@ -1248,48 +1357,11 @@ public struct HightlightedCourseFragment: GraphQLFragment {
       }
     }
   }
-
-  public struct Image: GraphQLSelectionSet {
-    public static let possibleTypes = ["Asset"]
-
-    public static let selections: [GraphQLSelection] = [
-      GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-      GraphQLField("url", type: .scalar(String.self)),
-    ]
-
-    public private(set) var resultMap: ResultMap
-
-    public init(unsafeResultMap: ResultMap) {
-      self.resultMap = unsafeResultMap
-    }
-
-    public init(url: String? = nil) {
-      self.init(unsafeResultMap: ["__typename": "Asset", "url": url])
-    }
-
-    public var __typename: String {
-      get {
-        return resultMap["__typename"]! as! String
-      }
-      set {
-        resultMap.updateValue(newValue, forKey: "__typename")
-      }
-    }
-
-    public var url: String? {
-      get {
-        return resultMap["url"] as? String
-      }
-      set {
-        resultMap.updateValue(newValue, forKey: "url")
-      }
-    }
-  }
 }
 
 public struct CourseFragment: GraphQLFragment {
   public static let fragmentDefinition =
-    "fragment CourseFragment on Course {\n  __typename\n  sys {\n    __typename\n    id\n  }\n  title\n  slug\n  image {\n    __typename\n    url\n  }\n  lessonsCollection {\n    __typename\n    items {\n      __typename\n      ...LessonFragment\n    }\n  }\n  categoriesCollection {\n    __typename\n    items {\n      __typename\n      ...CategoryFragment\n    }\n  }\n  shortDescription\n  description\n  duration\n  skillLevel\n}"
+    "fragment CourseFragment on Course {\n  __typename\n  sys {\n    __typename\n    id\n  }\n  title\n  slug\n  image {\n    __typename\n    ...AssetFragment\n  }\n  lessonsCollection {\n    __typename\n    items {\n      __typename\n      ...LessonFragment\n    }\n  }\n  categoriesCollection {\n    __typename\n    items {\n      __typename\n      ...CategoryFragment\n    }\n  }\n  shortDescription\n  description\n  duration\n  skillLevel\n}"
 
   public static let possibleTypes = ["Course"]
 
@@ -1458,17 +1530,13 @@ public struct CourseFragment: GraphQLFragment {
 
     public static let selections: [GraphQLSelection] = [
       GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-      GraphQLField("url", type: .scalar(String.self)),
+      GraphQLFragmentSpread(AssetFragment.self),
     ]
 
     public private(set) var resultMap: ResultMap
 
     public init(unsafeResultMap: ResultMap) {
       self.resultMap = unsafeResultMap
-    }
-
-    public init(url: String? = nil) {
-      self.init(unsafeResultMap: ["__typename": "Asset", "url": url])
     }
 
     public var __typename: String {
@@ -1480,12 +1548,29 @@ public struct CourseFragment: GraphQLFragment {
       }
     }
 
-    public var url: String? {
+    public var fragments: Fragments {
       get {
-        return resultMap["url"] as? String
+        return Fragments(unsafeResultMap: resultMap)
       }
       set {
-        resultMap.updateValue(newValue, forKey: "url")
+        resultMap += newValue.resultMap
+      }
+    }
+
+    public struct Fragments {
+      public private(set) var resultMap: ResultMap
+
+      public init(unsafeResultMap: ResultMap) {
+        self.resultMap = unsafeResultMap
+      }
+
+      public var assetFragment: AssetFragment {
+        get {
+          return AssetFragment(unsafeResultMap: resultMap)
+        }
+        set {
+          resultMap += newValue.resultMap
+        }
       }
     }
   }
@@ -1667,7 +1752,7 @@ public struct CourseFragment: GraphQLFragment {
 
 public struct LessonFragment: GraphQLFragment {
   public static let fragmentDefinition =
-    "fragment LessonFragment on Lesson {\n  __typename\n  title\n  slug\n  modulesCollection {\n    __typename\n    items {\n      __typename\n      ... on LessonCodeSnippets {\n        ...LessonCodeSnippetFragment\n      }\n      ... on LessonImage {\n        ...LessonImageFragment\n      }\n      ... on LessonCopy {\n        ...LessonCopyFragment\n      }\n    }\n  }\n}"
+    "fragment LessonFragment on Lesson {\n  __typename\n  title\n  slug\n  modulesCollection {\n    __typename\n    items {\n      __typename\n      ...LessonCodeSnippetFragment\n      ...LessonImageFragment\n      ...LessonCopyFragment\n    }\n  }\n}"
 
   public static let possibleTypes = ["Lesson"]
 
@@ -1764,12 +1849,10 @@ public struct LessonFragment: GraphQLFragment {
       public static let possibleTypes = ["LessonCodeSnippets", "LessonCopy", "LessonImage"]
 
       public static let selections: [GraphQLSelection] = [
-        GraphQLTypeCase(
-          variants: ["LessonCodeSnippets": AsLessonCodeSnippets.selections, "LessonImage": AsLessonImage.selections, "LessonCopy": AsLessonCopy.selections],
-          default: [
-            GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-          ]
-        )
+        GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
+        GraphQLFragmentSpread(LessonCodeSnippetFragment.self),
+        GraphQLFragmentSpread(LessonImageFragment.self),
+        GraphQLFragmentSpread(LessonCopyFragment.self),
       ]
 
       public private(set) var resultMap: ResultMap
@@ -1795,193 +1878,52 @@ public struct LessonFragment: GraphQLFragment {
         }
       }
 
-      public var asLessonCodeSnippets: AsLessonCodeSnippets? {
+      public var fragments: Fragments {
         get {
-          if !AsLessonCodeSnippets.possibleTypes.contains(__typename) { return nil }
-          return AsLessonCodeSnippets(unsafeResultMap: resultMap)
+          return Fragments(unsafeResultMap: resultMap)
         }
         set {
-          guard let newValue = newValue else { return }
-          resultMap = newValue.resultMap
+          resultMap += newValue.resultMap
         }
       }
 
-      public struct AsLessonCodeSnippets: GraphQLSelectionSet {
-        public static let possibleTypes = ["LessonCodeSnippets"]
-
-        public static let selections: [GraphQLSelection] = [
-          GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-          GraphQLFragmentSpread(LessonCodeSnippetFragment.self),
-        ]
-
+      public struct Fragments {
         public private(set) var resultMap: ResultMap
 
         public init(unsafeResultMap: ResultMap) {
           self.resultMap = unsafeResultMap
         }
 
-        public init(title: String? = nil, curl: String? = nil, dotNet: String? = nil, javascript: String? = nil, java: String? = nil, javaAndroid: String? = nil, php: String? = nil, python: String? = nil, ruby: String? = nil, swift: String? = nil) {
-          self.init(unsafeResultMap: ["__typename": "LessonCodeSnippets", "title": title, "curl": curl, "dotNet": dotNet, "javascript": javascript, "java": java, "javaAndroid": javaAndroid, "php": php, "python": python, "ruby": ruby, "swift": swift])
-        }
-
-        public var __typename: String {
+        public var lessonCodeSnippetFragment: LessonCodeSnippetFragment? {
           get {
-            return resultMap["__typename"]! as! String
+            if !LessonCodeSnippetFragment.possibleTypes.contains(resultMap["__typename"]! as! String) { return nil }
+            return LessonCodeSnippetFragment(unsafeResultMap: resultMap)
           }
           set {
-            resultMap.updateValue(newValue, forKey: "__typename")
-          }
-        }
-
-        public var fragments: Fragments {
-          get {
-            return Fragments(unsafeResultMap: resultMap)
-          }
-          set {
+            guard let newValue = newValue else { return }
             resultMap += newValue.resultMap
           }
         }
 
-        public struct Fragments {
-          public private(set) var resultMap: ResultMap
-
-          public init(unsafeResultMap: ResultMap) {
-            self.resultMap = unsafeResultMap
-          }
-
-          public var lessonCodeSnippetFragment: LessonCodeSnippetFragment {
-            get {
-              return LessonCodeSnippetFragment(unsafeResultMap: resultMap)
-            }
-            set {
-              resultMap += newValue.resultMap
-            }
-          }
-        }
-      }
-
-      public var asLessonImage: AsLessonImage? {
-        get {
-          if !AsLessonImage.possibleTypes.contains(__typename) { return nil }
-          return AsLessonImage(unsafeResultMap: resultMap)
-        }
-        set {
-          guard let newValue = newValue else { return }
-          resultMap = newValue.resultMap
-        }
-      }
-
-      public struct AsLessonImage: GraphQLSelectionSet {
-        public static let possibleTypes = ["LessonImage"]
-
-        public static let selections: [GraphQLSelection] = [
-          GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-          GraphQLFragmentSpread(LessonImageFragment.self),
-        ]
-
-        public private(set) var resultMap: ResultMap
-
-        public init(unsafeResultMap: ResultMap) {
-          self.resultMap = unsafeResultMap
-        }
-
-        public var __typename: String {
+        public var lessonImageFragment: LessonImageFragment? {
           get {
-            return resultMap["__typename"]! as! String
+            if !LessonImageFragment.possibleTypes.contains(resultMap["__typename"]! as! String) { return nil }
+            return LessonImageFragment(unsafeResultMap: resultMap)
           }
           set {
-            resultMap.updateValue(newValue, forKey: "__typename")
-          }
-        }
-
-        public var fragments: Fragments {
-          get {
-            return Fragments(unsafeResultMap: resultMap)
-          }
-          set {
+            guard let newValue = newValue else { return }
             resultMap += newValue.resultMap
           }
         }
 
-        public struct Fragments {
-          public private(set) var resultMap: ResultMap
-
-          public init(unsafeResultMap: ResultMap) {
-            self.resultMap = unsafeResultMap
-          }
-
-          public var lessonImageFragment: LessonImageFragment {
-            get {
-              return LessonImageFragment(unsafeResultMap: resultMap)
-            }
-            set {
-              resultMap += newValue.resultMap
-            }
-          }
-        }
-      }
-
-      public var asLessonCopy: AsLessonCopy? {
-        get {
-          if !AsLessonCopy.possibleTypes.contains(__typename) { return nil }
-          return AsLessonCopy(unsafeResultMap: resultMap)
-        }
-        set {
-          guard let newValue = newValue else { return }
-          resultMap = newValue.resultMap
-        }
-      }
-
-      public struct AsLessonCopy: GraphQLSelectionSet {
-        public static let possibleTypes = ["LessonCopy"]
-
-        public static let selections: [GraphQLSelection] = [
-          GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-          GraphQLFragmentSpread(LessonCopyFragment.self),
-        ]
-
-        public private(set) var resultMap: ResultMap
-
-        public init(unsafeResultMap: ResultMap) {
-          self.resultMap = unsafeResultMap
-        }
-
-        public init(title: String? = nil, copy: String? = nil) {
-          self.init(unsafeResultMap: ["__typename": "LessonCopy", "title": title, "copy": copy])
-        }
-
-        public var __typename: String {
+        public var lessonCopyFragment: LessonCopyFragment? {
           get {
-            return resultMap["__typename"]! as! String
+            if !LessonCopyFragment.possibleTypes.contains(resultMap["__typename"]! as! String) { return nil }
+            return LessonCopyFragment(unsafeResultMap: resultMap)
           }
           set {
-            resultMap.updateValue(newValue, forKey: "__typename")
-          }
-        }
-
-        public var fragments: Fragments {
-          get {
-            return Fragments(unsafeResultMap: resultMap)
-          }
-          set {
+            guard let newValue = newValue else { return }
             resultMap += newValue.resultMap
-          }
-        }
-
-        public struct Fragments {
-          public private(set) var resultMap: ResultMap
-
-          public init(unsafeResultMap: ResultMap) {
-            self.resultMap = unsafeResultMap
-          }
-
-          public var lessonCopyFragment: LessonCopyFragment {
-            get {
-              return LessonCopyFragment(unsafeResultMap: resultMap)
-            }
-            set {
-              resultMap += newValue.resultMap
-            }
           }
         }
       }
@@ -2121,7 +2063,7 @@ public struct LessonCodeSnippetFragment: GraphQLFragment {
 
 public struct LessonImageFragment: GraphQLFragment {
   public static let fragmentDefinition =
-    "fragment LessonImageFragment on LessonImage {\n  __typename\n  title\n  caption\n  image {\n    __typename\n    url\n  }\n}"
+    "fragment LessonImageFragment on LessonImage {\n  __typename\n  title\n  caption\n  image {\n    __typename\n    ...AssetFragment\n  }\n}"
 
   public static let possibleTypes = ["LessonImage"]
 
@@ -2183,17 +2125,13 @@ public struct LessonImageFragment: GraphQLFragment {
 
     public static let selections: [GraphQLSelection] = [
       GraphQLField("__typename", type: .nonNull(.scalar(String.self))),
-      GraphQLField("url", type: .scalar(String.self)),
+      GraphQLFragmentSpread(AssetFragment.self),
     ]
 
     public private(set) var resultMap: ResultMap
 
     public init(unsafeResultMap: ResultMap) {
       self.resultMap = unsafeResultMap
-    }
-
-    public init(url: String? = nil) {
-      self.init(unsafeResultMap: ["__typename": "Asset", "url": url])
     }
 
     public var __typename: String {
@@ -2205,12 +2143,29 @@ public struct LessonImageFragment: GraphQLFragment {
       }
     }
 
-    public var url: String? {
+    public var fragments: Fragments {
       get {
-        return resultMap["url"] as? String
+        return Fragments(unsafeResultMap: resultMap)
       }
       set {
-        resultMap.updateValue(newValue, forKey: "url")
+        resultMap += newValue.resultMap
+      }
+    }
+
+    public struct Fragments {
+      public private(set) var resultMap: ResultMap
+
+      public init(unsafeResultMap: ResultMap) {
+        self.resultMap = unsafeResultMap
+      }
+
+      public var assetFragment: AssetFragment {
+        get {
+          return AssetFragment(unsafeResultMap: resultMap)
+        }
+        set {
+          resultMap += newValue.resultMap
+        }
       }
     }
   }

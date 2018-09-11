@@ -3,28 +3,30 @@ import Foundation
 import UIKit
 import markymark
 
+// TODO: Enum with keypaths oder?
 class LessonSnippetsTableViewCell: UITableViewCell, CellConfigurable, UIPickerViewDataSource, UIPickerViewDelegate {
 
-    static let pickerOptions: [LessonSnippets.Fields] = {
-        return [
-            LessonSnippets.Fields.swift,
-            LessonSnippets.Fields.javaAndroid,
-            LessonSnippets.Fields.java,
-            LessonSnippets.Fields.javascript,
-            LessonSnippets.Fields.dotNet,
-            LessonSnippets.Fields.ruby,
-            LessonSnippets.Fields.python,
-            LessonSnippets.Fields.php,
-            LessonSnippets.Fields.curl
-        ]
-    }()
+    // TODO: Use Swift 4 key paths
+    static let pickerOptions: [KeyPath<LessonCodeSnippetFragment, String?>] = [
+        \LessonCodeSnippetFragment.swift,
+        \LessonCodeSnippetFragment.javaAndroid,
+        \LessonCodeSnippetFragment.java,
+        \LessonCodeSnippetFragment.javascript,
+        \LessonCodeSnippetFragment.dotNet,
+        \LessonCodeSnippetFragment.ruby,
+        \LessonCodeSnippetFragment.python,
+        \LessonCodeSnippetFragment.php,
+        \LessonCodeSnippetFragment.curl
+    ]
 
-    var snippets: LessonSnippets?
+    var snippets: LessonCodeSnippetFragment?
 
-    func configure(item: LessonSnippets) {
+    func configure(item: LessonCodeSnippetFragment) {
         self.snippets = item
-        populateCodeSnippet(code: item.swift)
-        programmingLanguageTextField.text = LessonSnippets.Fields.swift.displayName() + " ▼" // Swift treats unicode characters as one character :-)
+        guard let code = item.swift else { return }
+        populateCodeSnippet(code: code)
+        // TODO:
+//        programmingLanguageTextField.text = LessonSnippets.Fields.swift.displayName() + " ▼" // Swift treats unicode characters as one character :-)
     }
 
     func resetAllContent() {
@@ -51,11 +53,12 @@ class LessonSnippetsTableViewCell: UITableViewCell, CellConfigurable, UIPickerVi
         if let picker = programmingLanguageTextField.inputView as? UIPickerView {
             let selectedRow = picker.selectedRow(inComponent: 0)
             let selectedLanguage = LessonSnippetsTableViewCell.pickerOptions[selectedRow]
-            programmingLanguageTextField.text = LessonSnippetsTableViewCell.pickerOptions[selectedRow].displayName() + " ▼"
-            programmingLanguageTextField.endEditing(true)
-            
-            guard let code = snippets?.valueForField(selectedLanguage) else { return }
-            populateCodeSnippet(code: code)
+            // TODO:
+//            programmingLanguageTextField.text = LessonSnippetsTableViewCell.pickerOptions[selectedRow].displayName() + " ▼"
+//            programmingLanguageTextField.endEditing(true)
+//
+//            guard let code = snippets?.valueForField(selectedLanguage) else { return }
+//            populateCodeSnippet(code: code)
         }
     }
 
@@ -101,12 +104,14 @@ class LessonSnippetsTableViewCell: UITableViewCell, CellConfigurable, UIPickerVi
     }
 
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return LessonSnippets.numberSupportedLanguages
+        return LessonSnippetsTableViewCell.pickerOptions.count
     }
 
 
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return LessonSnippetsTableViewCell.pickerOptions[row].displayName()
+        return "TODO"
+        // TODO:
+//        return LessonSnippetsTableViewCell.pickerOptions[row].displayName()
     }
 }
 

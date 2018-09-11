@@ -2,40 +2,49 @@
 # GraphQL routes, generating models through apollo.
 #
 # @see https://graphql.contentful.com/content/v1/spaces/qz0n5cdakyl9/explore?access_token=580d5944194846b690dd89b630a1cb98a0eef6a19b860ef71efc37ee8076ddb8
-# @see https://www.apollographql.com/docs/android/
 #
 
-query Home {
-  layoutCollection(limit: 1) {
+query Home($slug: String!) {
+  layoutCollection(where: {slug: $slug}) {
     items {
-      title
-      slug
-      contentModulesCollection {
-        items {
-          ... on LayoutHighlightedCourse {
-            course {
-              ...HightlightedCourseFragment
-            }
-          }
-          ... on LayoutCopy {
-            title
-            headline
-            copy
-            ctaTitle
-            ctaLink
-            visualStyle
-          }
-          ... on LayoutHeroImage {
-            title
-            headline
-            backgroundImage {
-              url
-            }
-          }
-        }
-      }
+			...LayoutFragment
     }
   }
+}
+
+fragment LayoutFragment on Layout {
+  title
+  slug
+  contentModulesCollection {
+    items {
+      ...LayoutHighlightedCourseFragment
+      ...LayoutCopyFragment
+      ...LayoutHeroImageFragment
+    }
+  }
+}
+
+fragment LayoutHighlightedCourseFragment on LayoutHighlightedCourse {
+  course {
+    ...CourseFragment
+  }
+}
+
+fragment LayoutHeroImageFragment on LayoutHeroImage {
+  title
+  headline
+  backgroundImage {
+    ...AssetFragment
+  }
+}
+
+fragment LayoutCopyFragment on LayoutCopy {
+  title
+  headline
+  copy
+  ctaTitle
+  ctaLink
+  visualStyle
 }
 
 query CourseBySlug($slug: String!) {
@@ -46,7 +55,7 @@ query CourseBySlug($slug: String!) {
   }
 }
 
-query CoursesOfCategoryId($categoryId: String!) {
+query CoursesByCategoryWithId($categoryId: String!) {
   category(id: $categoryId) {
     linkedFrom {
       entryCollection {
@@ -74,16 +83,16 @@ query Categories {
   }
 }
 
-fragment HightlightedCourseFragment on Course {
+fragment AssetFragment on Asset {
   sys {
-     id
+    id
   }
-  slug
   title
-  shortDescription
-  image {
-    url
-  }
+  description
+  url
+  width
+  contentType
+  fileName
 }
 
 fragment CourseFragment on Course {
@@ -93,7 +102,7 @@ fragment CourseFragment on Course {
   title
   slug
   image {
-    url
+    ...AssetFragment
   }
   lessonsCollection {
     items {
@@ -116,15 +125,9 @@ fragment LessonFragment on Lesson {
   slug
   modulesCollection {
     items {
-      ... on LessonCodeSnippets {
-        ...LessonCodeSnippetFragment
-      }
-      ... on LessonImage {
-        ...LessonImageFragment
-      }
-      ... on LessonCopy {
-        ...LessonCopyFragment
-      }
+      ...LessonCodeSnippetFragment
+      ...LessonImageFragment
+      ...LessonCopyFragment
     }
   }
 }
@@ -146,7 +149,7 @@ fragment LessonImageFragment on LessonImage {
   title
   caption
   image {
-    url
+    ...AssetFragment
   }
 }
 
@@ -162,3 +165,4 @@ fragment CategoryFragment on Category {
   title
   slug
 }
+

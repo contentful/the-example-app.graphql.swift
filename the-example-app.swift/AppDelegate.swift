@@ -14,7 +14,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var deepLinkRouter: DPLDeepLinkRouter!
 
-
     // MARK: UIApplicationDelegate
 
     var window: UIWindow?

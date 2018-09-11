@@ -4,7 +4,7 @@ import UIKit
 
 class LessonTableViewCell: UITableViewCell, CellConfigurable {
 
-    func configure(item: Lesson) {
+    func configure(item: LessonFragment) {
         lessonTitleLabel.text = item.title
     }
 

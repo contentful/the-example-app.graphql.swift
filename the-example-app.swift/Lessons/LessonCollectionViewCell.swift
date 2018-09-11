@@ -4,7 +4,7 @@ import UIKit
 
 struct LessonViewModel {
 
-    let lesson: Lesson
+    let lesson: LessonFragment
     let services: Services
 }
 
@@ -15,7 +15,7 @@ final class LessonCollectionViewCell: UICollectionViewCell, CellConfigurable {
 
     func configure(item: LessonViewModel?) {
         if let item = item {
-            guard let modules = item.lesson.modules, modules.count > 0 else {
+            guard let modules = item.lesson.modulesCollection?.items, modules.count > 0 else {
                 let error = NoContentError.noModules(contentfulService: item.services.contentful,
                                                      route: "",
                                                      fontSize: 14.0)
@@ -61,7 +61,6 @@ final class LessonCollectionViewCell: UICollectionViewCell, CellConfigurable {
             tableView.registerNibFor(LessonSnippetsTableViewCell.self)
             tableView.registerNibFor(LessonImageTableViewCell.self)
             tableView.registerNibFor(ErrorTableViewCell.self)
-            tableView.registerNibFor(ResourceStatesTableViewCell.self)
         }
     }
 }
@@ -69,8 +68,6 @@ final class LessonCollectionViewCell: UICollectionViewCell, CellConfigurable {
 class LessonModulesDataSource: NSObject, UITableViewDataSource, UITableViewDelegate {
 
     let lessonViewModel: LessonViewModel
-
-    let stateCellFactory = TableViewCellFactory<ResourceStatesTableViewCell>()
 
     let copyCellFactory = TableViewCellFactory<LessonCopyTableViewCell>()
     let snippetsCellFactory = TableViewCellFactory<LessonSnippetsTableViewCell>()
@@ -81,47 +78,23 @@ class LessonModulesDataSource: NSObject, UITableViewDataSource, UITableViewDeleg
     }
 
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 2
+        return 1
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch section {
-        case 0:
-            if lessonViewModel.services.contentful.shouldShowResourceStateLabels {
-                if lessonViewModel.lesson.state == .upToDate {
-                    return 0
-                }
-                return 1
-            }
-            return 0
-        case 1:
-            return lessonViewModel.lesson.modules?.count ?? 0
-        default:
-            fatalError()
-        }
+        return lessonViewModel.lesson.modulesCollection?.items.count ?? 0
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        switch indexPath.section {
-        case 0:
-            return stateCellFactory.cell(for: lessonViewModel.lesson.state, in: tableView, at: indexPath)
-        case 1:
-            return cellInModulesSection(tableView: tableView, indexPath: indexPath)
-        default:
-            fatalError()
-        }
-    }
-
-    func cellInModulesSection(tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
         let cell: UITableViewCell
 
-        if let markdownModule = lessonViewModel.lesson.modules?[indexPath.item] as? LessonCopy {
+        if let markdownModule = lessonViewModel.lesson.modulesCollection?.items[indexPath.item]?.fragments.lessonCopyFragment {
             cell = copyCellFactory.cell(for: markdownModule, in: tableView, at: indexPath)
 
-        } else if let snippetsModule = lessonViewModel.lesson.modules?[indexPath.item] as? LessonSnippets {
+        } else if let snippetsModule = lessonViewModel.lesson.modulesCollection?.items[indexPath.item]?.fragments.lessonCodeSnippetFragment {
             cell = snippetsCellFactory.cell(for: snippetsModule, in: tableView, at: indexPath)
 
-        } else if let imageModule = lessonViewModel.lesson.modules?[indexPath.item] as? LessonImage {
+        } else if let imageModule = lessonViewModel.lesson.modulesCollection?.items[indexPath.item]?.fragments.lessonImageFragment {
             cell = imageCellFactory.cell(for: imageModule, in: tableView, at: indexPath)
 
         } else {
