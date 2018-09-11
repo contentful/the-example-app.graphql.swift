@@ -35,10 +35,7 @@ enum SupportedLanguages: CaseIterable {
     }
 }
 
-// TODO: Enum with keypaths oder?
 class LessonSnippetsTableViewCell: UITableViewCell, CellConfigurable, UIPickerViewDataSource, UIPickerViewDelegate {
-
-    static let pickerOptions: [SupportedLanguages] = SupportedLanguages.allCases
 
     var snippets: LessonCodeSnippetFragment?
 
@@ -72,8 +69,8 @@ class LessonSnippetsTableViewCell: UITableViewCell, CellConfigurable, UIPickerVi
     @objc func donePickingCodeLanguageAction(_ sender: UIBarButtonItem) {
         if let picker = programmingLanguageTextField.inputView as? UIPickerView {
             let selectedRow = picker.selectedRow(inComponent: 0)
-            let selectedLanguage = LessonSnippetsTableViewCell.pickerOptions[selectedRow]
-            programmingLanguageTextField.text = LessonSnippetsTableViewCell.pickerOptions[selectedRow].displayName() + " ▼"
+            let selectedLanguage = SupportedLanguages.allCases[selectedRow]
+            programmingLanguageTextField.text = SupportedLanguages.allCases[selectedRow].displayName() + " ▼"
             programmingLanguageTextField.endEditing(true)
 
             guard let code = snippets?[keyPath: selectedLanguage.fragmentKeyPath] else { return }
@@ -123,14 +120,12 @@ class LessonSnippetsTableViewCell: UITableViewCell, CellConfigurable, UIPickerVi
     }
 
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return LessonSnippetsTableViewCell.pickerOptions.count
+        return SupportedLanguages.allCases.count
     }
 
 
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return "TODO"
-        // TODO:
-//        return LessonSnippetsTableViewCell.pickerOptions[row].displayName()
+        return SupportedLanguages.allCases[row].displayName()
     }
 }
 
