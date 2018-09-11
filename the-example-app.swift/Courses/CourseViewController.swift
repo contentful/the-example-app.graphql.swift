@@ -199,7 +199,7 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
         tableView.registerNibFor(ErrorTableViewCell.self)
 
         // Enable table view cells to be sized dynamically based on inner content.
-        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.rowHeight = UITableView.automaticDimension
         view = tableView
     }
 

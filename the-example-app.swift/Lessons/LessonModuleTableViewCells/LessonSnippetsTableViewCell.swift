@@ -3,21 +3,42 @@ import Foundation
 import UIKit
 import markymark
 
+enum SupportedLanguages: CaseIterable {
+    case swift, java, dotNet, curl, python, ruby, javascript, php, javaAndroid
+
+    var fragmentKeyPath: KeyPath<LessonCodeSnippetFragment, String?> {
+        switch self {
+        case .swift: return \LessonCodeSnippetFragment.swift
+        case .javaAndroid: return \LessonCodeSnippetFragment.javaAndroid
+        case .java: return \LessonCodeSnippetFragment.java
+        case .javascript: return \LessonCodeSnippetFragment.javascript
+        case .dotNet: return \LessonCodeSnippetFragment.dotNet
+        case .ruby: return \LessonCodeSnippetFragment.ruby
+        case .python: return \LessonCodeSnippetFragment.python
+        case .php: return \LessonCodeSnippetFragment.php
+        case .curl: return \LessonCodeSnippetFragment.curl
+        }
+    }
+
+    func displayName() -> String {
+        switch self {
+        case .swift:        return "Swift"
+        case .java:         return "Java"
+        case .javaAndroid:  return "Android"
+        case .curl:         return "cURL"
+        case .dotNet:       return ".NET"
+        case .javascript:   return "JavaScript"
+        case .php:          return "PHP"
+        case .ruby:         return "Ruby"
+        case .python:       return "Python"
+        }
+    }
+}
+
 // TODO: Enum with keypaths oder?
 class LessonSnippetsTableViewCell: UITableViewCell, CellConfigurable, UIPickerViewDataSource, UIPickerViewDelegate {
 
-    // TODO: Use Swift 4 key paths
-    static let pickerOptions: [KeyPath<LessonCodeSnippetFragment, String?>] = [
-        \LessonCodeSnippetFragment.swift,
-        \LessonCodeSnippetFragment.javaAndroid,
-        \LessonCodeSnippetFragment.java,
-        \LessonCodeSnippetFragment.javascript,
-        \LessonCodeSnippetFragment.dotNet,
-        \LessonCodeSnippetFragment.ruby,
-        \LessonCodeSnippetFragment.python,
-        \LessonCodeSnippetFragment.php,
-        \LessonCodeSnippetFragment.curl
-    ]
+    static let pickerOptions: [SupportedLanguages] = SupportedLanguages.allCases
 
     var snippets: LessonCodeSnippetFragment?
 
@@ -25,8 +46,7 @@ class LessonSnippetsTableViewCell: UITableViewCell, CellConfigurable, UIPickerVi
         self.snippets = item
         guard let code = item.swift else { return }
         populateCodeSnippet(code: code)
-        // TODO:
-//        programmingLanguageTextField.text = LessonSnippets.Fields.swift.displayName() + " ▼" // Swift treats unicode characters as one character :-)
+        programmingLanguageTextField.text = SupportedLanguages.swift.displayName() + " ▼" // Swift treats unicode characters as one character :-)
     }
 
     func resetAllContent() {
@@ -53,12 +73,11 @@ class LessonSnippetsTableViewCell: UITableViewCell, CellConfigurable, UIPickerVi
         if let picker = programmingLanguageTextField.inputView as? UIPickerView {
             let selectedRow = picker.selectedRow(inComponent: 0)
             let selectedLanguage = LessonSnippetsTableViewCell.pickerOptions[selectedRow]
-            // TODO:
-//            programmingLanguageTextField.text = LessonSnippetsTableViewCell.pickerOptions[selectedRow].displayName() + " ▼"
-//            programmingLanguageTextField.endEditing(true)
-//
-//            guard let code = snippets?.valueForField(selectedLanguage) else { return }
-//            populateCodeSnippet(code: code)
+            programmingLanguageTextField.text = LessonSnippetsTableViewCell.pickerOptions[selectedRow].displayName() + " ▼"
+            programmingLanguageTextField.endEditing(true)
+
+            guard let code = snippets?[keyPath: selectedLanguage.fragmentKeyPath] else { return }
+            populateCodeSnippet(code: code)
         }
     }
 
