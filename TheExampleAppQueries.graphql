@@ -91,6 +91,7 @@ fragment AssetFragment on Asset {
   description
   url
   width
+  height
   contentType
   fileName
 }

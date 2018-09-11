@@ -2,6 +2,7 @@
 import Foundation
 import UIKit
 import AlamofireImage
+import Contentful
 
 class LayoutHighlightedCourseTableViewCell: UITableViewCell, CellConfigurable {
 
@@ -37,12 +38,11 @@ class LayoutHighlightedCourseTableViewCell: UITableViewCell, CellConfigurable {
             categoryLabel.text = categoryTitle.uppercased()
         }
 
-        // TODO:
-//        guard let asset = course.imageAsset else {
-//            return
-//        }
-//        let additionalOptions: [ImageOption] = [.fit(for: Fit.crop(focusingOn: nil))]
-//        courseImageView.setImageToNaturalHeight(fromAsset: asset, additionalOptions: additionalOptions)
+        guard let asset = course.image?.fragments.assetFragment else {
+            return
+        }
+        let additionalOptions: [ImageOption] = [.fit(for: Fit.crop(focusingOn: nil))]
+        courseImageView.setImageToNaturalHeight(fromAsset: asset, additionalOptions: additionalOptions)
     }
 
     func resetAllContent() {

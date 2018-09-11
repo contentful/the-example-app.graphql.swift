@@ -9,12 +9,9 @@ class LessonImageTableViewCell: UITableViewCell, CellConfigurable {
     typealias ItemType = LessonImageFragment
 
     func configure(item: LessonImageFragment) {
-        guard let asset = item.image else {
-            return
-        }
+        guard let asset = item.image?.fragments.assetFragment else { return }
         imageCaptionLabel.text = item.caption
-        // TODO:
-//        lessonImageView.setImageToNaturalHeight(fromAsset: asset, heightConstraint: lessonImageHeightConstraint)
+        lessonImageView.setImageToNaturalHeight(fromAsset: asset, heightConstraint: lessonImageHeightConstraint)
     }
 
     func resetAllContent() {

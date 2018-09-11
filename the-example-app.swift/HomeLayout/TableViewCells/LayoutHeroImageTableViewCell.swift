@@ -7,10 +7,10 @@ class LayoutHeroImageTableViewCell: UITableViewCell, CellConfigurable {
     func configure(item: LayoutHeroImageFragment) {
         titleLabel.text = item.headline
 
-        // TODO:
-//        if let backgroundImage = item.backgroundImage {
-//            backgroundImageView.setImageToNaturalHeight(fromAsset: backgroundImage)
-//        }
+
+        if let backgroundImage = item.backgroundImage?.fragments.assetFragment {
+            backgroundImageView.setImageToNaturalHeight(fromAsset: backgroundImage)
+        }
     }
 
     func resetAllContent() {

@@ -56,7 +56,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // Handle universal links: i.e. https://the-example-app.swift.herokuapp.com/route
     func application(_ application: UIApplication,
                      continue userActivity: NSUserActivity,
-                     restorationHandler: @escaping ([Any]?) -> Void) -> Bool {
+                     restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void) -> Bool {
         return deepLinkRouter.handle(userActivity, withCompletion: nil)
     }
 

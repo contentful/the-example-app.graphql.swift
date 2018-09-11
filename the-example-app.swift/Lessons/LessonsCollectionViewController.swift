@@ -198,7 +198,9 @@ class LessonsCollectionViewController: UIViewController, UICollectionViewDataSou
         updateNavBarTitle(lessonIndex: indexPath.row)
         updateToolbarItems(newIndexPath: indexPath)
         if let course = self.course, let lesson = course.lessonsCollection?.items[indexPath.row]?.fragments.lessonFragment, state == .showLesson {
-            Analytics.shared.logViewedRoute("/courses/\(course.slug)/lessons/\(lesson.slug)", spaceId: services.contentful.credentials.spaceId)
+            let courseSlug = course.slug ?? "unknown"
+            let lessonSlug = lesson.slug ?? "unknown"
+            Analytics.shared.logViewedRoute("/courses/\(courseSlug)/lessons/\(lessonSlug)", spaceId: services.contentful.credentials.spaceId)
             currentlyVisibleLesson = lesson
         }
     }

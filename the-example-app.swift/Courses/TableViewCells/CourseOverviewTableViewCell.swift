@@ -16,7 +16,8 @@ class CourseOverviewTableViewCell: UITableViewCell, CellConfigurable {
         viewModel = item
         courseTitleLabel.text = item.course.title
 
-        accessibilityLabel = "Course overview: \(item.course.title)"
+        let courseTitle = item.course.title ?? "Unknown course"
+        accessibilityLabel = "Course overview: \(courseTitle)"
 
         if let description = item.course.description {
             courseDescriptionTextView.attributedText = Markdown.attributedText(text: description)

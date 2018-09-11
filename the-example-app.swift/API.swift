@@ -1224,7 +1224,7 @@ public struct LayoutCopyFragment: GraphQLFragment {
 
 public struct AssetFragment: GraphQLFragment {
   public static let fragmentDefinition =
-    "fragment AssetFragment on Asset {\n  __typename\n  sys {\n    __typename\n    id\n  }\n  title\n  description\n  url\n  width\n  contentType\n  fileName\n}"
+    "fragment AssetFragment on Asset {\n  __typename\n  sys {\n    __typename\n    id\n  }\n  title\n  description\n  url\n  width\n  height\n  contentType\n  fileName\n}"
 
   public static let possibleTypes = ["Asset"]
 
@@ -1235,6 +1235,7 @@ public struct AssetFragment: GraphQLFragment {
     GraphQLField("description", type: .scalar(String.self)),
     GraphQLField("url", type: .scalar(String.self)),
     GraphQLField("width", type: .scalar(Int.self)),
+    GraphQLField("height", type: .scalar(Int.self)),
     GraphQLField("contentType", type: .scalar(String.self)),
     GraphQLField("fileName", type: .scalar(String.self)),
   ]
@@ -1245,8 +1246,8 @@ public struct AssetFragment: GraphQLFragment {
     self.resultMap = unsafeResultMap
   }
 
-  public init(sys: Sy, title: String? = nil, description: String? = nil, url: String? = nil, width: Int? = nil, contentType: String? = nil, fileName: String? = nil) {
-    self.init(unsafeResultMap: ["__typename": "Asset", "sys": sys.resultMap, "title": title, "description": description, "url": url, "width": width, "contentType": contentType, "fileName": fileName])
+  public init(sys: Sy, title: String? = nil, description: String? = nil, url: String? = nil, width: Int? = nil, height: Int? = nil, contentType: String? = nil, fileName: String? = nil) {
+    self.init(unsafeResultMap: ["__typename": "Asset", "sys": sys.resultMap, "title": title, "description": description, "url": url, "width": width, "height": height, "contentType": contentType, "fileName": fileName])
   }
 
   public var __typename: String {
@@ -1300,6 +1301,15 @@ public struct AssetFragment: GraphQLFragment {
     }
     set {
       resultMap.updateValue(newValue, forKey: "width")
+    }
+  }
+
+  public var height: Int? {
+    get {
+      return resultMap["height"] as? Int
+    }
+    set {
+      resultMap.updateValue(newValue, forKey: "height")
     }
   }
 
