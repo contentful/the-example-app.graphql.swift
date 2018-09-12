@@ -68,12 +68,9 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
         return false
     }
 
-
     // Contentful query.
     func query(slug: String) -> CourseBySlugQuery {
-        let query = CourseBySlugQuery(slug: slug)
-        // TODO: Figure out about locales.
-        return query
+        return CourseBySlugQuery(slug: slug)
     }
 
     // Request.

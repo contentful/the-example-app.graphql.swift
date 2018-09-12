@@ -139,8 +139,9 @@ class CoursesTableViewController: UIViewController, TabBarTabViewController, UIT
         // Cancel the previous request before making a new one.
         coursesRequest?.cancel()
 
+        // Different queries have different callbacks with Apollo because the Generic `GraphQLQuery` protocol
+        // has different associated types for different concrete queries which implement the protocol.
         if let selectedCategory = selectedCategory {
-            // UGH: Different queries have different callbacks...
             coursesRequest = services.contentful.graphQLClient.fetch(query: CoursesByCategoryWithIdQuery(categoryId: selectedCategory.sys.id)) { [unowned self] result, error in
                 if let error = error {
                     self.coursesSectionModel = CoursesSectionModel.errored(error)
