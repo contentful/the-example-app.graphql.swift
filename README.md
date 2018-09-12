@@ -1,10 +1,10 @@
 ## The Swift example app
 
-[![CircleCI](https://circleci.com/gh/contentful/the-example-app.swift.svg?style=svg)](https://circleci.com/gh/contentful/the-example-app.swift)
+[![CircleCI](https://circleci.com/gh/contentful/the-example-app.graphql.swift.svg?style=svg)](https://circleci.com/gh/contentful/the-example-app.graphql.swift)
 
-The Swift example app teaches the very basics of how to work with Contentful:
+The Swift GraphQL example app is variant of [The Swift example app](https://github.com/contentful/the-example-app.swift) which uses the [Apollo GraphQL client for iOS](https://github.com/apollographql/apollo-ios) to interface with the new Contentful GraphQL endpoint. This app teaches the very basics of how to work with Contentful:
 
-- consume content from the Contentful Delivery and Preview APIs
+- consume content from the Contentful GraphQL API
 - model content
 - edit content through the Contentful web app
 
@@ -20,7 +20,7 @@ You can see a hosted version of `The Swift example app` on the <a href="https://
 
 ## Requirements
 
-* Xcode 9
+* Xcode 10
 * Git
 * Contentful CLI (only for write access)
 * Ruby
@@ -32,7 +32,7 @@ Without any changes, this app is connected to a Contentful space with read-only 
 Clone the repo and install the dependencies.
 
 ```bash
-git clone https://github.com/contentful/the-example-app.swift.git
+git clone https://github.com/contentful/the-example-app.graphql.swift.git
 ```
 
 ```bash
@@ -70,7 +70,5 @@ CONTENTFUL_DELIVERY_TOKEN=<DELIVERY_ACCESS_TOKEN>
 CONTENTFUL_PREVIEW_TOKEN=<PREVIEW_ACCESS_TOKEN>
 ```
 
-Step 7: Open `the-example-app.swift.xcworkspace` in Xcode and run the app on a simulator or device. Navigate to settings and enable editorial features and then take a look around the app.
-
-Enabling editorial features will reveal which pieces of content are drafts or pending changes in your Contentful space.
+Step 7: Open `the-example-app.swift.xcworkspace` in Xcode and run the app on a simulator or device.
 
