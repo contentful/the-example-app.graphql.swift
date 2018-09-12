@@ -70,7 +70,6 @@
 		EDA926481FD6AD8B001BF946 /* StateMachine.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDA926471FD6AD8B001BF946 /* StateMachine.swift */; };
 		EDC6FB381FBB25D9005738BE /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDC6FB371FBB25D9005738BE /* AppDelegate.swift */; };
 		EDC6FB3F1FBB25D9005738BE /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EDC6FB3E1FBB25D9005738BE /* Assets.xcassets */; };
-		EDC6FB4D1FBB25D9005738BE /* ContentfulServiceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDC6FB4C1FBB25D9005738BE /* ContentfulServiceTests.swift */; };
 		EDC6FB691FBB331F005738BE /* Session.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDC6FB681FBB331F005738BE /* Session.swift */; };
 		EDC6FB6B1FBB332A005738BE /* Services.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDC6FB6A1FBB332A005738BE /* Services.swift */; };
 		EDC6FB6D1FBB3F7F005738BE /* UIKit.swift in Sources */ = {isa = PBXBuildFile; fileRef = EDC6FB6C1FBB3F7F005738BE /* UIKit.swift */; };
@@ -170,7 +169,6 @@
 		EDC6FB3E1FBB25D9005738BE /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		EDC6FB431FBB25D9005738BE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EDC6FB481FBB25D9005738BE /* the-example-app.swiftTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "the-example-app.swiftTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
-		EDC6FB4C1FBB25D9005738BE /* ContentfulServiceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentfulServiceTests.swift; sourceTree = "<group>"; };
 		EDC6FB4E1FBB25D9005738BE /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		EDC6FB671FBB30E9005738BE /* the-example-app.swift-Bridging-Header.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; name = "the-example-app.swift-Bridging-Header.h"; path = "the-example-app.swift/the-example-app.swift-Bridging-Header.h"; sourceTree = "<group>"; };
 		EDC6FB681FBB331F005738BE /* Session.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Session.swift; sourceTree = "<group>"; };
@@ -417,7 +415,6 @@
 			isa = PBXGroup;
 			children = (
 				EDA2A3B42020D41500510C14 /* the-example-app.swiftTests-Bridging-Header.h */,
-				EDC6FB4C1FBB25D9005738BE /* ContentfulServiceTests.swift */,
 				5D1084FA2006ACCB00489072 /* SessionTests.swift */,
 				ED5398672020D2F50087AD7B /* DeepLinkTests.swift */,
 				EDA2A3B52020DCE300510C14 /* KIF.swift */,
@@ -721,7 +718,6 @@
 			buildActionMask = 2147483647;
 			files = (
 				5D1084FB2006ACCB00489072 /* SessionTests.swift in Sources */,
-				EDC6FB4D1FBB25D9005738BE /* ContentfulServiceTests.swift in Sources */,
 				EDA2A3B62020DCE300510C14 /* KIF.swift in Sources */,
 				ED5398682020D2F50087AD7B /* DeepLinkTests.swift in Sources */,
 			);
