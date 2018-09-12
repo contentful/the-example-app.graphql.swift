@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="13771" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
+<document type="com.apple.InterfaceBuilder3.CocoaTouch.XIB" version="3.0" toolsVersion="14313.13.2" targetRuntime="iOS.CocoaTouch" propertyAccessControl="none" useAutolayout="YES" useTraitCollections="YES" useSafeAreas="YES" colorMatched="YES">
     <device id="retina4_7" orientation="portrait">
         <adaptation id="fullscreen"/>
     </device>
     <dependencies>
         <deployment identifier="iOS"/>
-        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="13772"/>
+        <plugIn identifier="com.apple.InterfaceBuilder.IBCocoaTouchPlugin" version="14283.9"/>
         <capability name="documents saved in the Xcode 8 format" minToolsVersion="8.0"/>
     </dependencies>
     <objects>
@@ -19,7 +19,7 @@
                 <autoresizingMask key="autoresizingMask"/>
                 <subviews>
                     <stackView opaque="NO" contentMode="scaleToFill" horizontalCompressionResistancePriority="1000" axis="vertical" distribution="fillProportionally" spacing="10" translatesAutoresizingMaskIntoConstraints="NO" id="jYs-EP-VKK">
-                        <rect key="frame" x="16" y="19" width="392" height="111"/>
+                        <rect key="frame" x="16" y="19" width="392" height="71.5"/>
                         <subviews>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="Hello SDKs, Hello SDKs, Hello SDKs, Hello SDKs, Hello SDKs, " lineBreakMode="tailTruncation" numberOfLines="0" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8yI-Ny-WLX">
                                 <rect key="frame" x="0.0" y="0.0" width="392" height="41"/>
@@ -27,35 +27,8 @@
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
                             </label>
-                            <view contentMode="scaleToFill" translatesAutoresizingMaskIntoConstraints="NO" id="gD7-py-rHq">
-                                <rect key="frame" x="0.0" y="51" width="392" height="29.5"/>
-                                <subviews>
-                                    <textView clipsSubviews="YES" multipleTouchEnabled="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" editable="NO" text="Draft" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="mK6-rJ-eZZ">
-                                        <rect key="frame" x="0.0" y="0.0" width="37" height="29.5"/>
-                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="11"/>
-                                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                                    </textView>
-                                    <textView clipsSubviews="YES" multipleTouchEnabled="YES" userInteractionEnabled="NO" contentMode="scaleToFill" horizontalHuggingPriority="750" verticalHuggingPriority="1000" horizontalCompressionResistancePriority="1000" verticalCompressionResistancePriority="1000" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" editable="NO" text="Pending changes" selectable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="d2p-lN-8AC">
-                                        <rect key="frame" x="47" y="0.0" width="100.5" height="29.5"/>
-                                        <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                        <fontDescription key="fontDescription" type="system" pointSize="11"/>
-                                        <textInputTraits key="textInputTraits" autocapitalizationType="sentences"/>
-                                    </textView>
-                                </subviews>
-                                <color key="backgroundColor" white="1" alpha="1" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
-                                <constraints>
-                                    <constraint firstAttribute="bottom" secondItem="mK6-rJ-eZZ" secondAttribute="bottom" id="K1H-jt-MWG"/>
-                                    <constraint firstItem="mK6-rJ-eZZ" firstAttribute="top" secondItem="gD7-py-rHq" secondAttribute="top" id="QQo-IV-ugv"/>
-                                    <constraint firstItem="d2p-lN-8AC" firstAttribute="leading" secondItem="mK6-rJ-eZZ" secondAttribute="trailing" constant="10" id="QVX-kj-FP4"/>
-                                    <constraint firstItem="mK6-rJ-eZZ" firstAttribute="leading" secondItem="gD7-py-rHq" secondAttribute="leading" id="VSW-D0-Trk"/>
-                                    <constraint firstItem="d2p-lN-8AC" firstAttribute="top" secondItem="gD7-py-rHq" secondAttribute="top" id="aAo-8A-8xC"/>
-                                    <constraint firstAttribute="bottom" secondItem="d2p-lN-8AC" secondAttribute="bottom" id="guL-ha-y2V"/>
-                                    <constraint firstAttribute="height" constant="16" id="zCl-de-DSA"/>
-                                </constraints>
-                            </view>
                             <label opaque="NO" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" text="Label" textAlignment="natural" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" translatesAutoresizingMaskIntoConstraints="NO" id="8pa-E8-ekc" userLabel="DetailsLabel">
-                                <rect key="frame" x="0.0" y="90.5" width="392" height="20.5"/>
+                                <rect key="frame" x="0.0" y="51" width="392" height="20.5"/>
                                 <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                 <nil key="textColor"/>
                                 <nil key="highlightedColor"/>
@@ -63,7 +36,7 @@
                         </subviews>
                     </stackView>
                     <button opaque="NO" contentMode="scaleToFill" verticalHuggingPriority="1000" verticalCompressionResistancePriority="1000" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" translatesAutoresizingMaskIntoConstraints="NO" id="gp7-kO-jQz">
-                        <rect key="frame" x="16" y="138" width="117" height="28"/>
+                        <rect key="frame" x="16" y="98.5" width="117" height="28"/>
                         <inset key="contentEdgeInsets" minX="16" minY="5" maxX="16" maxY="5"/>
                         <state key="normal" title="Start course"/>
                         <connections>
@@ -71,7 +44,7 @@
                         </connections>
                     </button>
                     <textView clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" scrollEnabled="NO" showsHorizontalScrollIndicator="NO" showsVerticalScrollIndicator="NO" editable="NO" translatesAutoresizingMaskIntoConstraints="NO" id="ryB-aI-mFL">
-                        <rect key="frame" x="16" y="182" width="392" height="239.5"/>
+                        <rect key="frame" x="16" y="142.5" width="392" height="279"/>
                         <color key="backgroundColor" white="0.0" alpha="0.0" colorSpace="custom" customColorSpace="genericGamma22GrayColorSpace"/>
                         <string key="text">Lorem ipsum dolor sit er elit lamet, consectetaur cillium adipisicing pecu, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum. Nam liber te conscient to factor tum poen legum odioque civiuda.</string>
                         <fontDescription key="fontDescription" type="system" pointSize="17"/>
@@ -94,12 +67,8 @@
                 <outlet property="courseDescriptionTextView" destination="ryB-aI-mFL" id="HZA-2L-oc6"/>
                 <outlet property="courseTitleLabel" destination="8yI-Ny-WLX" id="piV-S7-pG3"/>
                 <outlet property="detailsLabel" destination="8pa-E8-ekc" id="j8m-Qx-gIr"/>
-                <outlet property="entryStatesContainerView" destination="gD7-py-rHq" id="8ai-dI-jFm"/>
-                <outlet property="entryStatesViewHeightConstraint" destination="zCl-de-DSA" id="b2H-QS-lea"/>
-                <outlet property="leadingStateTextView" destination="mK6-rJ-eZZ" id="ONu-DM-Qpz"/>
                 <outlet property="stackView" destination="jYs-EP-VKK" id="iyy-Cq-9uM"/>
                 <outlet property="startCourseButton" destination="gp7-kO-jQz" id="bPU-FX-ZjQ"/>
-                <outlet property="trailingStateTextView" destination="d2p-lN-8AC" id="umT-dG-0Xp"/>
             </connections>
             <point key="canvasLocation" x="-193" y="214"/>
         </tableViewCell>

@@ -1,0 +1,169 @@
+#
+# GraphQL routes, generating models through apollo.
+#
+# @see https://graphql.contentful.com/content/v1/spaces/qz0n5cdakyl9/explore?access_token=580d5944194846b690dd89b630a1cb98a0eef6a19b860ef71efc37ee8076ddb8
+#
+
+query Home($slug: String!) {
+  layoutCollection(where: {slug: $slug}) {
+    items {
+			...LayoutFragment
+    }
+  }
+}
+
+fragment LayoutFragment on Layout {
+  title
+  slug
+  contentModulesCollection {
+    items {
+      ...LayoutHighlightedCourseFragment
+      ...LayoutCopyFragment
+      ...LayoutHeroImageFragment
+    }
+  }
+}
+
+fragment LayoutHighlightedCourseFragment on LayoutHighlightedCourse {
+  course {
+    ...CourseFragment
+  }
+}
+
+fragment LayoutHeroImageFragment on LayoutHeroImage {
+  title
+  headline
+  backgroundImage {
+    ...AssetFragment
+  }
+}
+
+fragment LayoutCopyFragment on LayoutCopy {
+  title
+  headline
+  copy
+  ctaTitle
+  ctaLink
+  visualStyle
+}
+
+query CourseBySlug($slug: String!) {
+  courseCollection(where: {slug: $slug}) {
+    items {
+      ...CourseFragment
+    }
+  }
+}
+
+query CoursesByCategoryWithId($categoryId: String!) {
+  category(id: $categoryId) {
+    linkedFrom {
+      entryCollection {
+        items {
+          ...CourseFragment
+        }
+      }
+    }
+  }
+}
+
+query Courses {
+  courseCollection {
+    items {
+      ...CourseFragment
+    }
+  }
+}
+
+query Categories {
+  categoryCollection {
+    items {
+      ...CategoryFragment
+    }
+  }
+}
+
+fragment AssetFragment on Asset {
+  sys {
+    id
+  }
+  title
+  description
+  url
+  width
+  height
+  contentType
+  fileName
+}
+
+fragment CourseFragment on Course {
+  sys {
+    id
+  }
+  title
+  slug
+  image {
+    ...AssetFragment
+  }
+  lessonsCollection {
+    items {
+      ...LessonFragment
+    }
+  }
+  categoriesCollection {
+    items {
+      ...CategoryFragment
+    }
+  }
+  shortDescription
+  description
+  duration
+  skillLevel
+}
+
+fragment LessonFragment on Lesson {
+  title
+  slug
+  modulesCollection {
+    items {
+      ...LessonCodeSnippetFragment
+      ...LessonImageFragment
+      ...LessonCopyFragment
+    }
+  }
+}
+
+fragment LessonCodeSnippetFragment on LessonCodeSnippets {
+  title
+  curl
+  dotNet
+  javascript
+  java
+  javaAndroid
+  php
+  python
+  ruby
+  swift
+}
+
+fragment LessonImageFragment on LessonImage {
+  title
+  caption
+  image {
+    ...AssetFragment
+  }
+}
+
+fragment LessonCopyFragment on LessonCopy {
+  title
+  copy
+}
+
+fragment CategoryFragment on Category {
+  sys {
+   id
+  }
+  title
+  slug
+}
+

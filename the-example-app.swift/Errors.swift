@@ -11,14 +11,14 @@ protocol ApplicationError: Error {
 func attributedErrorMessageHeader(errorMessageKey: String,
                         hintsKeys: [String],
                         fontSize: CGFloat, contentfulService: ContentfulService) -> NSMutableAttributedString {
-    let regularAttributes: [NSAttributedStringKey: Any] = [.font: UIFont.systemFont(ofSize: fontSize, weight: .regular)]
-    let string = NSMutableAttributedString(string: errorMessageKey.localized(contentfulService: contentfulService),
+    let regularAttributes: [NSAttributedString.Key: Any] = [.font: UIFont.systemFont(ofSize: fontSize, weight: .regular)]
+    let string = NSMutableAttributedString(string: errorMessageKey.localized(),
                                            attributes: regularAttributes)
 
-    string.append(NSAttributedString(string: "\n" + "hintsLabel".localized(contentfulService: contentfulService) + "\n",
+    string.append(NSAttributedString(string: "\n" + "hintsLabel".localized() + "\n",
                                      attributes: [.font: UIFont.systemFont(ofSize: fontSize, weight: .bold)]))
     for key in hintsKeys {
-        let hintString = NSAttributedString(string: "\n• \(key.localized(contentfulService: contentfulService))", attributes: regularAttributes)
+        let hintString = NSAttributedString(string: "\n• \(key.localized())", attributes: regularAttributes)
         string.append(hintString)
     }
     return string
@@ -37,7 +37,7 @@ struct NoContentError: ApplicationError {
                                                    fontSize: fontSize,
                                                    contentfulService: contentfulService)
         let headline = """
-        \("somethingWentWrongLabel".localized(contentfulService: contentfulService))
+        \("somethingWentWrongLabel".localized())
         No content for '\(route)'
         """
         return NoContentError(headline: headline, message: message, route: route)
@@ -51,7 +51,7 @@ struct NoContentError: ApplicationError {
                                                    contentfulService: contentfulService)
         let headline = """
 
-        \("somethingWentWrongLabel".localized(contentfulService: contentfulService))
+        \("somethingWentWrongLabel".localized())
         Invalid route '\(route)'
         """
         return NoContentError(headline: headline, message: message, route: route)
@@ -64,7 +64,7 @@ struct NoContentError: ApplicationError {
                                                    hintsKeys: ["notFoundErrorHint", "draftOrPublishedErrorHint"],
                                                    fontSize: fontSize,
                                                    contentfulService: contentfulService)
-        let headline = "noContentLabel".localized(contentfulService: contentfulService)
+        let headline = "noContentLabel".localized()
         return NoContentError(headline: headline, message: message, route: route)
     }
 
@@ -74,7 +74,7 @@ struct NoContentError: ApplicationError {
                                                    hintsKeys: ["notFoundErrorHint", "draftOrPublishedErrorHint"],
                                                    fontSize: fontSize,
                                                    contentfulService: contentfulService)
-        let headline = "somethingWentWrongLabel".localized(contentfulService: contentfulService)
+        let headline = "somethingWentWrongLabel".localized()
 
         return NoContentError(headline: headline, message: message, route: route)
     }
@@ -85,7 +85,7 @@ struct NoContentError: ApplicationError {
                                                    hintsKeys: ["notFoundErrorHint", "draftOrPublishedErrorHint"],
                                                    fontSize: fontSize,
                                                    contentfulService: contentfulService)
-        let headline = "noContentLabel".localized(contentfulService: contentfulService)
+        let headline = "noContentLabel".localized()
         return NoContentError(headline: headline, message: message, route: route)
     }
 
@@ -96,7 +96,7 @@ struct NoContentError: ApplicationError {
                                                    contentfulService: contentfulService)
         
         let headline = """
-        \("somethingWentWrongLabel".localized(contentfulService: contentfulService))
+        \("somethingWentWrongLabel".localized())
         Invalid route '\(route)'
         """
         return NoContentError(headline: headline, message: message, route: route)
@@ -109,7 +109,7 @@ struct NoContentError: ApplicationError {
                                                    fontSize: fontSize,
                                                    contentfulService: contentfulService)
         let headline = """
-        \("somethingWentWrongLabel".localized(contentfulService: contentfulService))
+        \("somethingWentWrongLabel".localized())
         Invalid route '\(route)'
         """
 

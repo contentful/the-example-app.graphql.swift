@@ -3,28 +3,47 @@ import Foundation
 import UIKit
 import markymark
 
+enum SupportedLanguages: CaseIterable {
+    case swift, java, dotNet, curl, python, ruby, javascript, php, javaAndroid
+
+    var fragmentKeyPath: KeyPath<LessonCodeSnippetFragment, String?> {
+        switch self {
+        case .swift: return \LessonCodeSnippetFragment.swift
+        case .javaAndroid: return \LessonCodeSnippetFragment.javaAndroid
+        case .java: return \LessonCodeSnippetFragment.java
+        case .javascript: return \LessonCodeSnippetFragment.javascript
+        case .dotNet: return \LessonCodeSnippetFragment.dotNet
+        case .ruby: return \LessonCodeSnippetFragment.ruby
+        case .python: return \LessonCodeSnippetFragment.python
+        case .php: return \LessonCodeSnippetFragment.php
+        case .curl: return \LessonCodeSnippetFragment.curl
+        }
+    }
+
+    func displayName() -> String {
+        switch self {
+        case .swift:        return "Swift"
+        case .java:         return "Java"
+        case .javaAndroid:  return "Android"
+        case .curl:         return "cURL"
+        case .dotNet:       return ".NET"
+        case .javascript:   return "JavaScript"
+        case .php:          return "PHP"
+        case .ruby:         return "Ruby"
+        case .python:       return "Python"
+        }
+    }
+}
+
 class LessonSnippetsTableViewCell: UITableViewCell, CellConfigurable, UIPickerViewDataSource, UIPickerViewDelegate {
 
-    static let pickerOptions: [LessonSnippets.Fields] = {
-        return [
-            LessonSnippets.Fields.swift,
-            LessonSnippets.Fields.javaAndroid,
-            LessonSnippets.Fields.java,
-            LessonSnippets.Fields.javascript,
-            LessonSnippets.Fields.dotNet,
-            LessonSnippets.Fields.ruby,
-            LessonSnippets.Fields.python,
-            LessonSnippets.Fields.php,
-            LessonSnippets.Fields.curl
-        ]
-    }()
+    var snippets: LessonCodeSnippetFragment?
 
-    var snippets: LessonSnippets?
-
-    func configure(item: LessonSnippets) {
+    func configure(item: LessonCodeSnippetFragment) {
         self.snippets = item
-        populateCodeSnippet(code: item.swift)
-        programmingLanguageTextField.text = LessonSnippets.Fields.swift.displayName() + " ▼" // Swift treats unicode characters as one character :-)
+        guard let code = item.swift else { return }
+        populateCodeSnippet(code: code)
+        programmingLanguageTextField.text = SupportedLanguages.swift.displayName() + " ▼" // Swift treats unicode characters as one character :-)
     }
 
     func resetAllContent() {
@@ -50,11 +69,11 @@ class LessonSnippetsTableViewCell: UITableViewCell, CellConfigurable, UIPickerVi
     @objc func donePickingCodeLanguageAction(_ sender: UIBarButtonItem) {
         if let picker = programmingLanguageTextField.inputView as? UIPickerView {
             let selectedRow = picker.selectedRow(inComponent: 0)
-            let selectedLanguage = LessonSnippetsTableViewCell.pickerOptions[selectedRow]
-            programmingLanguageTextField.text = LessonSnippetsTableViewCell.pickerOptions[selectedRow].displayName() + " ▼"
+            let selectedLanguage = SupportedLanguages.allCases[selectedRow]
+            programmingLanguageTextField.text = SupportedLanguages.allCases[selectedRow].displayName() + " ▼"
             programmingLanguageTextField.endEditing(true)
-            
-            guard let code = snippets?.valueForField(selectedLanguage) else { return }
+
+            guard let code = snippets?[keyPath: selectedLanguage.fragmentKeyPath] else { return }
             populateCodeSnippet(code: code)
         }
     }
@@ -101,12 +120,12 @@ class LessonSnippetsTableViewCell: UITableViewCell, CellConfigurable, UIPickerVi
     }
 
     func pickerView(_ pickerView: UIPickerView, numberOfRowsInComponent component: Int) -> Int {
-        return LessonSnippets.numberSupportedLanguages
+        return SupportedLanguages.allCases.count
     }
 
 
     func pickerView(_ pickerView: UIPickerView, titleForRow row: Int, forComponent component: Int) -> String? {
-        return LessonSnippetsTableViewCell.pickerOptions[row].displayName()
+        return SupportedLanguages.allCases[row].displayName()
     }
 }
 

@@ -1,13 +1,12 @@
 
 import Foundation
 import UIKit
-import Contentful
-import Interstellar
+import Apollo
 
 class HomeLayoutTableViewController: UIViewController, TabBarTabViewController, UITableViewDelegate, UITableViewDataSource, CustomNavigable {
 
     var tabItem: UITabBarItem {
-        return UITabBarItem(title: "homeLabel".localized(contentfulService: services.contentful),
+        return UITabBarItem(title: "homeLabel".localized(),
                             image: UIImage(named: "tabbar-icon-home"),
                             selectedImage: nil)
     }
@@ -15,7 +14,7 @@ class HomeLayoutTableViewController: UIViewController, TabBarTabViewController, 
     let services: Services
 
     // Data model for this view controller.
-    var homeLayout: HomeLayout?
+    var homeLayout: LayoutFragment?
 
     var tableViewDataSource: UITableViewDataSource? {
         didSet {
@@ -32,22 +31,13 @@ class HomeLayoutTableViewController: UIViewController, TabBarTabViewController, 
     let heroImageCellFactory = TableViewCellFactory<LayoutHeroImageTableViewCell>()
     let layoutCopyDefaultCellFactory = TableViewCellFactory<LayoutCopyDefaultTableViewCell>()
     let layoutCopyEmphasizedCellFactory = TableViewCellFactory<LayoutCopyEmphasizedTableViewCell>()
-    let stateCellFactory = TableViewCellFactory<ResourceStatesTableViewCell>()
 
-    var query: QueryOn<HomeLayout> {
-        let localeCode = services.contentful.currentLocaleCode
-        // Search for the entry for the 'home screen' by its slug.
-        let query = QueryOn<HomeLayout>.where(field: .slug, .equals("home")).localizeResults(withLocaleCode: localeCode)
-
-        // Include links that are two levels deep in the API response. In this case, specifying
-        // 4 levels deep will give us the home layout > it's modules > the course for a highlighted course module
-        // it's lessons and their lesson modules and linked assets
-        query.include(4)
-        return query
+    var query: HomeQuery {
+        return HomeQuery(slug: "home")
     }
 
     // Requests.
-    var layoutRequest: URLSessionTask?
+    var layoutRequest: Cancellable?
 
     // MARK: CustomNavigable
 
@@ -113,29 +103,27 @@ class HomeLayoutTableViewController: UIViewController, TabBarTabViewController, 
 
         // Cancel the previous request before making a new one.
         layoutRequest?.cancel()
-        layoutRequest = services.contentful.client.fetchMappedEntries(matching: query) { [unowned self] result in
+        layoutRequest = services.contentful.graphQLClient.fetch(query: self.query) { [unowned self] result, error in
 
-            switch result {
-            case .success(let arrayResponse):
-                guard arrayResponse.items.count > 0 else {
+            if let error = error {
+                let errorModel = ErrorTableViewCell.Model(error: error, services: self.services)
+                self.tableViewDataSource = ErrorTableViewDataSource(model: errorModel)
+                return // TODO: return?
+            }
+            if let data = result?.data {
+                guard let layoutCollection = data.layoutCollection, layoutCollection.items.count > 0 else {
                     self.setNoHomeLayoutErrorDataSource()
                     return
                 }
-                guard let modules = arrayResponse.items.first!.modules, modules.count > 0 else {
+                guard let modules = layoutCollection.items.first!?.fragments.layoutFragment.contentModulesCollection?.items, modules.count > 0 else {
                     self.setNoModulesDataSource()
                     return
                 }
-                self.homeLayout = arrayResponse.items.first!
+                self.homeLayout = layoutCollection.items.first!?.fragments.layoutFragment
                 self.tableViewDataSource = self
                 DispatchQueue.main.async {
                     self.tableView.delegate = self
                 }
-                self.resolveStatesOnLayoutModules()
-
-            case .error(let error):
-
-                let errorModel = ErrorTableViewCell.Model(error: error, services: self.services)
-                self.tableViewDataSource = ErrorTableViewDataSource(model: errorModel)
             }
         }
     }
@@ -163,20 +151,6 @@ class HomeLayoutTableViewController: UIViewController, TabBarTabViewController, 
     }
 
 
-    func resolveStatesOnLayoutModules() {
-        guard let homeLayout = self.homeLayout else { return }
-
-        services.contentful.willResolveStateIfNecessary(for: homeLayout) { [unowned self] (result: Result<HomeLayout>, deliveryHomeLayout: HomeLayout?) in
-            guard var statefulPreviewHomeLayout = result.value, let statefulPreviewHomeModules = statefulPreviewHomeLayout.modules else { return }
-            guard let deliveryModules = deliveryHomeLayout?.modules else { return }
-
-            statefulPreviewHomeLayout = self.services.contentful.inferStateFromLinkedModuleDiffs(statefulRootAndModules: (statefulPreviewHomeLayout, statefulPreviewHomeModules), deliveryModules: deliveryModules)
-            DispatchQueue.main.async {
-                self.tableView.reloadSections(IndexSet(integer: 0), with: .automatic)
-            }
-        }
-    }
-
     // MARK: UIViewController
 
     override func loadView() {
@@ -186,13 +160,12 @@ class HomeLayoutTableViewController: UIViewController, TabBarTabViewController, 
         tableView.registerNibFor(LayoutCopyDefaultTableViewCell.self)
         tableView.registerNibFor(LayoutCopyEmphasizedTableViewCell.self)
         tableView.registerNibFor(LayoutHeroImageTableViewCell.self)
-        tableView.registerNibFor(ResourceStatesTableViewCell.self)
 
         tableView.registerNibFor(LoadingTableViewCell.self)
         tableView.registerNibFor(ErrorTableViewCell.self)
         
         // Enable table view cells to be sized dynamically based on inner content.
-        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 345
         tableView.accessibilityLabel = "Home"
         view = tableView
@@ -212,53 +185,30 @@ class HomeLayoutTableViewController: UIViewController, TabBarTabViewController, 
     // MARK: UITableViewDataSource
 
     func numberOfSections(in tableView: UITableView) -> Int {
-        return 2
+        return 1
     }
 
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        switch section {
-        case 0:
-            if services.contentful.shouldShowResourceStateLabels {
-                if let homeLayout = homeLayout, homeLayout.state == .upToDate {
-                    return 0
-                }
-                return 1
-            }
-            return 0
-        case 1:
-            return homeLayout?.modules?.count ?? 0
-        default:
-            fatalError()
-        }
+        return homeLayout?.contentModulesCollection?.items.count ?? 0
     }
 
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        switch indexPath.section {
-        case 0:
-            return stateCellFactory.cell(for: homeLayout!.state, in: tableView, at: indexPath)
-        case 1:
-            return cellInModulesSection(tableView: tableView, indexPath: indexPath)
-        default:
-            fatalError()
-        }
-    }
-
-    func cellInModulesSection(tableView: UITableView, indexPath: IndexPath) -> UITableViewCell {
 
         let cell: UITableViewCell
 
-        if let highlightedCourse = homeLayout?.modules?[indexPath.row] as? LayoutHighlightedCourse {
+        if let highlightedCourse = homeLayout?.contentModulesCollection?.items[indexPath.row]?.fragments.layoutHighlightedCourseFragment,
+            let course = highlightedCourse.course {
 
             let model = LayoutHighlightedCourseTableViewCell.Model(highlightedCourse: highlightedCourse) { [unowned self] in
-                let courseViewController = CourseViewController(course: highlightedCourse.course, services: self.services)
+                let courseViewController = CourseViewController(course: course.fragments.courseFragment, services: self.services)
                 self.navigationController?.pushViewController(courseViewController, animated: true)
             }
             cell = highlighteCourseCellFactory.cell(for: model, in: tableView, at: indexPath)
 
-        } else if let layoutCopy = homeLayout?.modules?[indexPath.row] as? LayoutCopy {
-            cell = layoutCopy.visualStyle == .emphasized ? layoutCopyEmphasizedCellFactory.cell(for: layoutCopy, in: tableView, at: indexPath) : layoutCopyDefaultCellFactory.cell(for: layoutCopy, in: tableView, at: indexPath)
+        } else if let layoutCopy = homeLayout?.contentModulesCollection?.items[indexPath.row]?.fragments.layoutCopyFragment {
+            cell = layoutCopy.visualStyle == "Emphasized" ? layoutCopyEmphasizedCellFactory.cell(for: layoutCopy, in: tableView, at: indexPath) : layoutCopyDefaultCellFactory.cell(for: layoutCopy, in: tableView, at: indexPath)
 
-        } else if let layoutHeroImage = homeLayout?.modules?[indexPath.row] as? LayoutHeroImage {
+        } else if let layoutHeroImage = homeLayout?.contentModulesCollection?.items[indexPath.row]?.fragments.layoutHeroImageFragment {
             cell = heroImageCellFactory.cell(for: layoutHeroImage, in: tableView, at: indexPath)
 
         } else {
@@ -267,13 +217,16 @@ class HomeLayoutTableViewController: UIViewController, TabBarTabViewController, 
         return cell
     }
 
+
     // MARK: UITableViewDelegate
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         guard indexPath.section == 1 else { return }
 
-        guard let highlightedCourse = homeLayout?.modules?[indexPath.row] as? LayoutHighlightedCourse else { return }
-        let courseViewController = CourseViewController(course: highlightedCourse.course, services: self.services)
+        guard let highlightedCourse = homeLayout?.contentModulesCollection?.items[indexPath.row]?.fragments.layoutHighlightedCourseFragment,
+            let course = highlightedCourse.course else { return }
+
+        let courseViewController = CourseViewController(course: course.fragments.courseFragment, services: self.services)
         navigationController?.pushViewController(courseViewController, animated: true)
     }
 }

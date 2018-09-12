@@ -1,0 +1,13 @@
+{
+  "schemaPath": "schema.json",
+  "extensions": {
+    "endpoints": {
+      "dev": {
+        "url": "https://graphql.contentful.com/content/v1/spaces/qz0n5cdakyl9/environments/master",
+        "headers": {
+          "Authorization": "Bearer b2b980b80e4154cb8cdd1d3b156d7b5d17f5eeb3ba3b1035db39cc842b199866"
+        }
+      }
+    }
+  }
+}

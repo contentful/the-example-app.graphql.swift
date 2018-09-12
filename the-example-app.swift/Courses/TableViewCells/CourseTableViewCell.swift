@@ -6,7 +6,7 @@ class CourseTableViewCell: UITableViewCell, CellConfigurable {
 
     struct Model {
         let contentfulService: ContentfulService
-        let course: Course
+        let course: CourseFragment
         let backgroundColor: UIColor
         let didTapViewCourseButton: (() -> Void)?
     }
@@ -16,8 +16,8 @@ class CourseTableViewCell: UITableViewCell, CellConfigurable {
     func configure(item: Model) {
         viewModel = item
 
-        if let firstCategory = item.course.categories?.first {
-            categoryLabel.text = firstCategory.title
+        if let firstCategoryTitle = item.course.categoriesCollection?.items.first??.fragments.categoryFragment.title {
+            categoryLabel.text = firstCategoryTitle
         }
 
         containerView.backgroundColor = viewModel?.backgroundColor
@@ -25,36 +25,6 @@ class CourseTableViewCell: UITableViewCell, CellConfigurable {
         shortDescriptionLabel.text = item.course.shortDescription
 
         accessibilityLabel = item.course.title
-
-        if item.contentfulService.shouldShowResourceStateLabels {
-            switch item.course.state {
-            case .upToDate:
-                trailingStateTextView.isHidden = true
-                leadingStateTextView.isHidden = true
-
-            case .draft:
-
-                trailingStateTextView.isHidden = true
-                leadingStateTextView.isHidden = false
-                leadingStateTextView.showDraftState()
-                setNeedsLayout()
-
-            case .draftAndPendingChanges:
-                trailingStateTextView.isHidden = false
-                leadingStateTextView.isHidden = false
-
-                leadingStateTextView.showDraftState()
-                trailingStateTextView.showPendingChangesState()
-                setNeedsLayout()
-
-            case .pendingChanges:
-                trailingStateTextView.isHidden = true
-                leadingStateTextView.isHidden = false
-
-                leadingStateTextView.showPendingChangesState()
-                setNeedsLayout()
-            }
-        }
     }
 
     func resetAllContent() {
@@ -62,8 +32,6 @@ class CourseTableViewCell: UITableViewCell, CellConfigurable {
         accessibilityLabel = nil
 
         containerView.backgroundColor = .clear
-        trailingStateTextView.isHidden = true
-        leadingStateTextView.isHidden = true
 
         categoryLabel.text = nil
         titleLabel.text = nil
@@ -79,28 +47,6 @@ class CourseTableViewCell: UITableViewCell, CellConfigurable {
         super.awakeFromNib()
         contentView.autoresizingMask = [.flexibleHeight, .flexibleWidth]
         selectionStyle = .none
-    }
-
-    @IBOutlet weak var leadingStateTextView: UITextView! {
-        didSet {
-            leadingStateTextView.textContainerInset = UITextView.resourceStateInsets
-            leadingStateTextView.font = UIFont.systemFont(ofSize: 11.0, weight: .regular)
-            leadingStateTextView.textColor = .white
-            leadingStateTextView.layer.cornerRadius = 3
-            leadingStateTextView.layer.masksToBounds = true
-            leadingStateTextView.isHidden = true
-        }
-    }
-
-    @IBOutlet weak var trailingStateTextView: UITextView! {
-        didSet {
-            trailingStateTextView.textContainerInset = UITextView.resourceStateInsets
-            trailingStateTextView.font = UIFont.systemFont(ofSize: 11.0, weight: .regular)
-            trailingStateTextView.textColor = .white
-            trailingStateTextView.layer.cornerRadius = 3
-            trailingStateTextView.layer.masksToBounds = true
-            trailingStateTextView.isHidden = true
-        }
     }
 
     @IBAction func viewCourseButtonAction(_ sender: Any) {

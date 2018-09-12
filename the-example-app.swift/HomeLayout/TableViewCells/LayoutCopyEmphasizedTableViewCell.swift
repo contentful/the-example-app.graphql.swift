@@ -6,7 +6,7 @@ class LayoutCopyEmphasizedTableViewCell: UITableViewCell, CellConfigurable {
 
     var didTapCallToActionButton: (() -> Void)?
 
-    func configure(item: LayoutCopy) {
+    func configure(item: LayoutCopyFragment) {
 
         if let urlString = item.ctaLink, let url = URL(string: urlString) {
             didTapCallToActionButton = {

@@ -8,20 +8,6 @@ import UIKit
  */
 class AlertController: UIAlertController {
 
-    static func credentialsErrorAlertController(error: CredentialsTester.Error) -> AlertController {
-        let title = "Error(s) connecting to space with URL parameters occurred"
-        let message: String = {
-            var message = ""
-            for (_, errorMessage) in error.errorMessages {
-                message.append("• " + errorMessage + "\n")
-            }
-            return message
-        }()
-        let controller = AlertController(title: title, message: message, preferredStyle: .alert)
-        controller.addDismissAction()
-        return controller
-    }
-
     static func credentialSuccess(credentials: ContentfulCredentials) -> AlertController {
         let title = "New space detected"
         let message = """

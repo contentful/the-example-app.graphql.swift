@@ -1,12 +1,18 @@
 
 import Foundation
 import UIKit
-import Contentful
-import Interstellar
+import Apollo
+
+extension CourseFragment {
+    var hasLessons: Bool {
+        guard let lessons = lessonsCollection, lessons.items.isEmpty == false else { return false }
+        return true
+    }
+}
 
 class CourseViewController: UIViewController, UITableViewDataSource, UITableViewDelegate, CustomNavigable {
 
-    init(course: Course?, services: Services) {
+    init(course: CourseFragment?, services: Services) {
         self.course = course
         self.services = services
         super.init(nibName: nil, bundle: nil)
@@ -18,13 +24,12 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
         fatalError("init(coder:) has not been implemented")
     }
 
-    private var course: Course? {
+    private var course: CourseFragment? {
         didSet {
             assert(course != nil)
             DispatchQueue.main.async { [weak self] in
                 if let strongSelf = self, strongSelf.course != nil {
                     strongSelf.tableView?.delegate = self
-                    strongSelf.resolveStateOnLessons()
                 }
             }
         }
@@ -63,20 +68,17 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
         return false
     }
 
-
     // Contentful query.
-    func query(slug: String) -> QueryOn<Course> {
-        let localeCode = services.contentful.currentLocaleCode
-        let query = QueryOn<Course>.where(field: .slug, .equals(slug)).include(3).localizeResults(withLocaleCode: localeCode)
-        return query
+    func query(slug: String) -> CourseBySlugQuery {
+        return CourseBySlugQuery(slug: slug)
     }
 
     // Request.
-    var courseRequest: URLSessionTask?
+    var courseRequest: Cancellable?
 
     func updateWithNewState() {
-        guard let course = course else { return }
-        fetchCourseWithSlug(course.slug)
+        guard let course = course, let slug = course.slug else { return }
+        fetchCourseWithSlug(slug)
     }
 
     // This method is called by Router when deeplinking into a course and/or lesson.
@@ -91,13 +93,18 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
 
         showLoadingStateOnLessonsCollection()
         courseRequest?.cancel()
-        courseRequest = services.contentful.client.fetchMappedEntries(matching: query(slug: slug)) { [weak self] result in
+        courseRequest = services.contentful.graphQLClient.fetch(query: query(slug: slug)) { [weak self] result, error in
             DispatchQueue.main.async {
                 guard let strongSelf = self else { return }
                 strongSelf.courseRequest = nil
-                switch result {
-                case .success(let arrayResponse):
-                    if arrayResponse.items.count == 0 {
+
+                if let error = error {
+                    let model = ErrorTableViewCell.Model(error: error, services: strongSelf.services)
+                    strongSelf.tableViewDataSource = ErrorTableViewDataSource(model: model)
+                    return // TODO: return?
+                }
+                if let data = result?.data {
+                    guard let courseCollection = data.courseCollection, courseCollection.items.count > 0 else {
                         let error: NoContentError
                         if let lessonSlug = lessonSlug {
                             error = NoContentError.noLessons(contentfulService: strongSelf.services.contentful,
@@ -109,12 +116,13 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
                         strongSelf.showNoContentErrorAndPop(error: error)
                         return
                     }
-                    strongSelf.course = arrayResponse.items.first!
+                    strongSelf.course = data.courseCollection!.items.first!!.fragments.courseFragment
                     strongSelf.tableViewDataSource = strongSelf
                     strongSelf.tableView?.delegate = strongSelf
 
                     guard let lessonSlug = lessonSlug ?? self?.lessonsViewController?.currentlyVisibleLesson?.slug else {
-                        Analytics.shared.logViewedRoute("/courses/\(strongSelf.course!.slug)", spaceId: strongSelf.services.contentful.credentials.spaceId)
+                        let courseSlug = strongSelf.course?.slug ?? "unknown"
+                        Analytics.shared.logViewedRoute("/courses/\(courseSlug)", spaceId: strongSelf.services.contentful.credentials.spaceId)
                         return
                     }
                     guard strongSelf.course!.hasLessons else {
@@ -125,7 +133,7 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
                         strongSelf.showNoContentErrorAndPop(error: error)
                         return
                     }
-                    guard strongSelf.course!.lessons!.contains(where: { $0.slug == lessonSlug }) else {
+                    guard strongSelf.course!.lessonsCollection?.items.contains(where: { $0?.fragments.lessonFragment.slug == lessonSlug }) ?? false else {
                         // If lessons are currenlty being displayed, and the course doesn't contain the lesson we want to display
                         // just go back to the course overview.
                         strongSelf.lessonsViewController?.navigationController?.popViewController(animated: true)
@@ -134,9 +142,6 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
 
                     strongSelf.lessonsViewController?.setCourse(strongSelf.course!, showLessonWithSlug: lessonSlug)
 
-                case .error(let error):
-                    let model = ErrorTableViewCell.Model(error: error, services: strongSelf.services)
-                    strongSelf.tableViewDataSource = ErrorTableViewDataSource(model: model)
                 }
             }
         }
@@ -169,35 +174,6 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
         self.lessonsViewController = lessonsViewController
     }
 
-    public func resolveStateOnCourse() {
-        guard let course = self.course else { return }
-
-        services.contentful.willResolveStateIfNecessary(for: course) { [weak self] (result: Result<Course>, _) in
-            guard let statefulCourse = result.value else { return }
-            self?.course = statefulCourse
-        }
-    }
-
-    public func resolveStateOnLessons() {
-        guard let course = self.course, let lessons = course.lessons else { return }
-
-        for lesson in lessons {
-            services.contentful.willResolveStateIfNecessary(for: lesson) { [weak self] (result: Result<Lesson>, deliveryLesson: Lesson?) in
-                guard var statefulPreviewLesson = result.value, let statefulPreviewLessonModules = statefulPreviewLesson.modules else { return }
-                guard let strongSelf = self else { return }
-                guard let deliveryModules = deliveryLesson?.modules else { return }
-
-                // Aggregate state on the Lesson's by looking at the states on each module in `modules: [LessonModule]?` property and update.
-                statefulPreviewLesson = strongSelf.services.contentful.inferStateFromLinkedModuleDiffs(statefulRootAndModules: (statefulPreviewLesson, statefulPreviewLessonModules), deliveryModules: deliveryModules)
-
-                if let index = lessons.index(where: { $0.id == statefulPreviewLesson.id }) {
-                    strongSelf.course?.lessons?[index] = statefulPreviewLesson
-                    strongSelf.lessonsViewController?.updateLessonStateAtIndex(index)
-                }
-            }
-        }
-    }
-
     func showLoadingStateOnLessonsCollection() {
         DispatchQueue.main.async { [weak self] in
             if let strongSelf = self, let lessonsViewController = strongSelf.lessonsViewController {
@@ -221,7 +197,7 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
         tableView.registerNibFor(ErrorTableViewCell.self)
 
         // Enable table view cells to be sized dynamically based on inner content.
-        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.rowHeight = UITableView.automaticDimension
         view = tableView
     }
 
@@ -232,13 +208,13 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
     var contentfulServiceStateObservatinToken: String?
 
     func addStateObservations() {
-        contentfulServiceStateObservatinToken = services.contentful.stateMachine.addTransitionObservation { [weak self] _ in
+        stateObservationToken = services.contentful.stateMachine.addTransitionObservation { [weak self] _ in
             DispatchQueue.main.async {
                 self?.updateWithNewState()
             }
         }
 
-        stateObservationToken = services.contentfulStateMachine.addTransitionObservation { [weak self] _ in
+        contentfulServiceStateObservatinToken = services.contentfulStateMachine.addTransitionObservation { [weak self] _ in
             self?.removeStateObservations()
             self?.addStateObservations()
         }
@@ -268,8 +244,8 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
         if course != nil {
             tableViewDataSource = self
             tableView.delegate = self
-            resolveStateOnCourse()
-            Analytics.shared.logViewedRoute("/courses/\(course!.slug)", spaceId: services.contentful.credentials.spaceId)
+            let courseSlug = course?.slug ?? "unknown"
+            Analytics.shared.logViewedRoute("/courses/\(courseSlug)", spaceId: services.contentful.credentials.spaceId)
         } else {
             tableViewDataSource = LoadingTableViewDataSource()
             tableView.delegate = nil
@@ -299,7 +275,7 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
         switch section {
         case 0:     return 1
-        case 1:     return course?.lessons?.count ?? 0
+        case 1:     return course?.lessonsCollection?.items.count ?? 0
         default:    return 0
         }
     }
@@ -317,10 +293,10 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
             }
             cell = courseOverviewCellFactory.cell(for: model, in: tableView, at: indexPath)
         case 1:
-            guard let lesson = course?.lessons?[indexPath.item] else {
+            guard let lesson = course?.lessonsCollection?.items[indexPath.item] else {
                 fatalError()
             }
-            cell = lessonCellFactory.cell(for: lesson, in: tableView, at: indexPath)
+            cell = lessonCellFactory.cell(for: lesson.fragments.lessonFragment, in: tableView, at: indexPath)
         default: fatalError()
         }
         return cell
@@ -329,7 +305,7 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
     func tableView(_ tableView: UITableView, titleForHeaderInSection section: Int) -> String? {
         switch section {
         case 0:     return nil
-        case 1:     return "lessonsLabel".localized(contentfulService: services.contentful)
+        case 1:     return "lessonsLabel".localized()
         default:    return nil
         }
     }

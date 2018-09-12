@@ -4,16 +4,16 @@ import UIKit
 
 protocol CategorySelectorDelegate {
 
-    func didTapCategory(_ category: Category?)
+    func didTapCategory(_ category: CategoryFragment?)
 }
 
 class CategorySelectorTableViewCell: UITableViewCell, CellConfigurable, UICollectionViewDataSource, UICollectionViewDelegate {
 
     struct Model {
         let contentfulService: ContentfulService
-        var categories: [Category]?
+        var categories: [CategoryFragment]?
         var delegate: CategorySelectorDelegate
-        var selectedCategory: Category?
+        var selectedCategory: CategoryFragment?
     }
 
     var viewModel: Model?
@@ -86,12 +86,12 @@ class CategorySelectorTableViewCell: UITableViewCell, CellConfigurable, UICollec
         switch indexPath.section {
         case 0:
 
-            cell = categoryCellFactory.cell(for: "allCoursesLabel".localized(contentfulService: viewModel!.contentfulService), in: collectionView, at: indexPath)
+            cell = categoryCellFactory.cell(for: "allCoursesLabel".localized(), in: collectionView, at: indexPath)
         case 1:
-            guard let category = viewModel?.categories?[indexPath.item] else {
+            guard let category = viewModel?.categories?[indexPath.item], let title = category.title else {
                 fatalError()
             }
-            cell = categoryCellFactory.cell(for: category.title, in: collectionView, at: indexPath)
+            cell = categoryCellFactory.cell(for: title, in: collectionView, at: indexPath)
         default: fatalError()
         }
         return cell

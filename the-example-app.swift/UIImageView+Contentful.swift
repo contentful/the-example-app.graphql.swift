@@ -6,13 +6,14 @@ import Contentful
 
 extension UIImageView {
 
-    func setImageToNaturalHeight(fromAsset asset: Asset,
+    func setImageToNaturalHeight(fromAsset asset: AssetFragment,
                                  additionalOptions: [ImageOption] = [],
                                  heightConstraint: NSLayoutConstraint? = nil) {
-        
+
         // Get the current width of the cell and see if it is wider than the screen.
-        guard let width = asset.file?.details?.imageInfo?.width else { return }
-        guard let height = asset.file?.details?.imageInfo?.height else { return }
+        guard let w = asset.width else { return }
+        guard let h = asset.height else { return }
+        let (width, height) = (Double(w), Double(h))
 
         // Use scale to get the pixel size of the image view.
         let scale = UIScreen.main.scale
@@ -30,7 +31,7 @@ extension UIImageView {
             .height(UInt(viewHeightInPx)),
         ] + additionalOptions
 
-        let url = try! asset.url(with: imageOptions)
+        let url = try! asset.url!.url(with: imageOptions)
 
         // Use AlamofireImage extensons to fetch the image and render the image veiw.
         af_setImage(withURL: url,

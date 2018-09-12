@@ -4,7 +4,7 @@ import UIKit
 
 class LessonsCollectionViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, CustomNavigable {
 
-    init(course: Course?, services: Services) {
+    init(course: CourseFragment?, services: Services) {
         self.services = services
         self.course = course
 
@@ -19,11 +19,11 @@ class LessonsCollectionViewController: UIViewController, UICollectionViewDataSou
 
     var state: State = .showLoading
 
-    private var course: Course?
+    private var course: CourseFragment?
 
-    var currentlyVisibleLesson: Lesson?
+    var currentlyVisibleLesson: LessonFragment?
 
-    public func setCourse(_ course: Course, showLessonWithSlug lessonSlug: String) {
+    public func setCourse(_ course: CourseFragment, showLessonWithSlug lessonSlug: String) {
         self.course = course
         state = .showLesson
         
@@ -62,7 +62,7 @@ class LessonsCollectionViewController: UIViewController, UICollectionViewDataSou
         assert(course != nil)
 
         // If we the passed in slug matches a lesson already contained in the collections data source
-        guard let lessonIndex = course!.lessons?.index(where: { $0.slug == slug }) else { return }
+        guard let lessonIndex = course?.lessonsCollection?.items.index(where: { $0?.fragments.lessonFragment.slug == slug }) else { return }
         let indexPath = IndexPath(item: lessonIndex, section: 0)
 
         if let collectionView = collectionView {
@@ -85,16 +85,16 @@ class LessonsCollectionViewController: UIViewController, UICollectionViewDataSou
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         toolbarItems.append(flexibleSpace)
 
-        if let lessonCount = course?.lessons?.count, newIndexPath.row != lessonCount - 1 {
-            let nextLessonButton = UIBarButtonItem(title: "Next".localized(contentfulService: services.contentful), style: .plain, target: self, action: #selector(LessonsCollectionViewController.didTapNextLessonButton(_:)))
+        if let lessonCount = course?.lessonsCollection?.items.count, newIndexPath.row != lessonCount - 1 {
+            let nextLessonButton = UIBarButtonItem(title: "Next".localized(), style: .plain, target: self, action: #selector(LessonsCollectionViewController.didTapNextLessonButton(_:)))
             toolbarItems.append(nextLessonButton)
         }
         setToolbarItems(toolbarItems, animated: true)
     }
 
     func updateNavBarTitle(lessonIndex: Int) {
-        if let lesson = course?.lessons?[lessonIndex] {
-            self.title = lesson.title
+        if let lesson = course?.lessonsCollection?.items[lessonIndex] {
+            self.title = lesson.fragments.lessonFragment.title
         }
     }
 
@@ -153,7 +153,7 @@ class LessonsCollectionViewController: UIViewController, UICollectionViewDataSou
     }
 
     @objc func didTapNextLessonButton(_ sender: Any) {
-        guard let lessons = course?.lessons else { return }
+        guard let lessons = course?.lessonsCollection?.items else { return }
         if let indexPath = collectionView.indexPathsForVisibleItems.first, indexPath.row < lessons.count - 1 {
             let newIndexPath = IndexPath(item: indexPath.item + 1, section: indexPath.section)
             collectionView?.scrollToItem(at: newIndexPath, at: .centeredHorizontally, animated: true)
@@ -161,7 +161,7 @@ class LessonsCollectionViewController: UIViewController, UICollectionViewDataSou
     }
 
     @objc func didTapPreviousLessonButton(_ sender: Any) {
-        guard course?.lessons != nil else { return }
+        guard course?.lessonsCollection?.items != nil else { return }
         if let indexPath = collectionView.indexPathsForVisibleItems.first, indexPath.row > 0 {
             let newIndexPath = IndexPath(item: indexPath.item - 1, section: indexPath.section)
             collectionView?.scrollToItem(at: newIndexPath, at: .centeredHorizontally, animated: true)
@@ -171,7 +171,7 @@ class LessonsCollectionViewController: UIViewController, UICollectionViewDataSou
     // MARK: UICollectionViewDataSource
 
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return course?.lessons?.count ?? 1
+        return course?.lessonsCollection?.items.count ?? 1
     }
 
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -179,9 +179,8 @@ class LessonsCollectionViewController: UIViewController, UICollectionViewDataSou
 
         switch state {
         case .showLesson:
-            if course?.lessons?[indexPath.item] != nil {
-                let lesson = course!.lessons![indexPath.item]
-                let lessonViewModel = LessonViewModel(lesson: lesson, services: services)
+            if let lesson = course?.lessonsCollection?.items[indexPath.item] {
+                let lessonViewModel = LessonViewModel(lesson: lesson.fragments.lessonFragment, services: services)
                 cell = cellFactory.cell(for: lessonViewModel, in: collectionView, at: indexPath)
             } else {
                 fallthrough
@@ -198,8 +197,10 @@ class LessonsCollectionViewController: UIViewController, UICollectionViewDataSou
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         updateNavBarTitle(lessonIndex: indexPath.row)
         updateToolbarItems(newIndexPath: indexPath)
-        if let course = self.course, let lesson = course.lessons?[indexPath.row], state == .showLesson {
-            Analytics.shared.logViewedRoute("/courses/\(course.slug)/lessons/\(lesson.slug)", spaceId: services.contentful.credentials.spaceId)
+        if let course = self.course, let lesson = course.lessonsCollection?.items[indexPath.row]?.fragments.lessonFragment, state == .showLesson {
+            let courseSlug = course.slug ?? "unknown"
+            let lessonSlug = lesson.slug ?? "unknown"
+            Analytics.shared.logViewedRoute("/courses/\(courseSlug)/lessons/\(lessonSlug)", spaceId: services.contentful.credentials.spaceId)
             currentlyVisibleLesson = lesson
         }
     }

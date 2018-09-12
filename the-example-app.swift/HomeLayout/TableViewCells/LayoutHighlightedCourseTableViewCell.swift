@@ -7,14 +7,14 @@ import Contentful
 class LayoutHighlightedCourseTableViewCell: UITableViewCell, CellConfigurable {
 
     struct Model {
-        let highlightedCourse: LayoutHighlightedCourse
+        let highlightedCourse: LayoutHighlightedCourseFragment
         let didTapViewCourseButton: (() -> Void)?
     }
 
     var viewModel: Model?
 
     func configure(item: Model) {
-        guard let course = item.highlightedCourse.course else {
+        guard let course = item.highlightedCourse.course?.fragments.courseFragment, let title = course.title else {
             viewCourseButton.isHidden = true
             return
         }
@@ -22,10 +22,10 @@ class LayoutHighlightedCourseTableViewCell: UITableViewCell, CellConfigurable {
 
         let paragraphStyle = NSMutableParagraphStyle()
         paragraphStyle.lineSpacing = 1.14
-        let attributedText = NSAttributedString(string: course.title, attributes: [.paragraphStyle: paragraphStyle])
+        let attributedText = NSAttributedString(string: title, attributes: [.paragraphStyle: paragraphStyle])
         titleLabel.attributedText = attributedText
 
-        accessibilityLabel = "Today's highlighted course: \(course.title)"
+        accessibilityLabel = "Today's highlighted course: \(title)"
 
         if let description = course.shortDescription {
             let paragraphStyle = NSMutableParagraphStyle()
@@ -34,11 +34,11 @@ class LayoutHighlightedCourseTableViewCell: UITableViewCell, CellConfigurable {
             descriptionLabel.attributedText = attributedText
         }
 
-        if let category = course.categories?.first {
-            categoryLabel.text = category.title.uppercased()
+        if let categoryTitle = course.categoriesCollection?.items.first??.fragments.categoryFragment.title {
+            categoryLabel.text = categoryTitle.uppercased()
         }
 
-        guard let asset = course.imageAsset else {
+        guard let asset = course.image?.fragments.assetFragment else {
             return
         }
         let additionalOptions: [ImageOption] = [.fit(for: Fit.crop(focusingOn: nil))]

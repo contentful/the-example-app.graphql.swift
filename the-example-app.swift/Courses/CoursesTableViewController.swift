@@ -1,13 +1,18 @@
         
 import Foundation
 import UIKit
-import Contentful
-import Interstellar
+import Apollo
+
+extension CategoryFragment: Equatable {
+    public static func ==(lhs: CategoryFragment, rhs: CategoryFragment) -> Bool {
+        return lhs.sys.id == rhs.sys.id
+    }
+}
 
 class CoursesTableViewController: UIViewController, TabBarTabViewController, UITableViewDataSource, UITableViewDelegate, CategorySelectorDelegate {
 
     var tabItem: UITabBarItem {
-        return UITabBarItem(title: "coursesLabel".localized(contentfulService: services.contentful),
+        return UITabBarItem(title: "coursesLabel".localized(),
                             image: UIImage(named: "tabbar-icon-courses"),
                             selectedImage: nil)
     }
@@ -23,7 +28,6 @@ class CoursesTableViewController: UIViewController, TabBarTabViewController, UIT
 
     let services: Services
 
-
     // Data model for this view controller.
     var coursesSectionModel: CoursesSectionModel = .loading {
         didSet {
@@ -32,18 +36,18 @@ class CoursesTableViewController: UIViewController, TabBarTabViewController, UIT
     }
 
     enum CoursesSectionModel {
-        case loaded([Course])
+        case loaded([CourseFragment])
         case loading
         case errored(Error)
     }
 
     let coursesSectionIndex: Int = 1
 
-    var categories: [Category]?
+    var categories: [CategoryFragment]?
 
-    var selectedCategory: Category?
+    var selectedCategory: CategoryFragment?
 
-    var onCategoryAppearance: (([Category]) -> Void)?
+    var onCategoryAppearance: (([CategoryFragment]) -> Void)?
 
     // We must retain the data source.
     var tableViewDataSource: UITableViewDataSource? {
@@ -60,26 +64,9 @@ class CoursesTableViewController: UIViewController, TabBarTabViewController, UIT
     let coursesCellFactory = TableViewCellFactory<CourseTableViewCell>()
     let categorySelectorCellFactory = TableViewCellFactory<CategorySelectorTableViewCell>()
 
-    // Contentful queries.
-    var categoriesQuery: QueryOn<Category> {
-        let localeCode = services.contentful.currentLocaleCode
-        return QueryOn<Category>.localizeResults(withLocaleCode: localeCode)
-    }
-
-    var coursesQuery: QueryOn<Course> {
-        let localeCode = services.contentful.currentLocaleCode
-        let query = QueryOn<Course>.include(2).localizeResults(withLocaleCode: localeCode)
-        try! query.order(by: Ordering(sys: .createdAt, inReverse: true))
-        if let selectedCategory = selectedCategory {
-            // Filter courses by category.
-            query.where(linksToEntryWithId: selectedCategory.id)
-        }
-        return query
-    }
-
     // Requests.
-    var coursesRequest: URLSessionTask?
-    var categoriesRequest: URLSessionTask?
+    var coursesRequest: Cancellable?
+    var categoriesRequest: Cancellable?
 
     // State change reactions.
     var stateObservationToken: String?
@@ -88,7 +75,7 @@ class CoursesTableViewController: UIViewController, TabBarTabViewController, UIT
     func addStateObservations() {
         stateObservationToken = services.contentful.stateMachine.addTransitionObservationAndObserveInitialState { [unowned self] _ in
             DispatchQueue.main.async {
-                self.title = "coursesLabel".localized(contentfulService: self.services.contentful)
+                self.title = "coursesLabel".localized()
                 self.fetchCategoriesFromContentful()
             }
         }
@@ -121,27 +108,26 @@ class CoursesTableViewController: UIViewController, TabBarTabViewController, UIT
         categoriesRequest?.cancel()
         coursesRequest?.cancel()
 
-        categoriesRequest = services.contentful.client.fetchMappedEntries(matching: categoriesQuery) { [unowned self] result in
+        categoriesRequest = services.contentful.graphQLClient.fetch(query: CategoriesQuery()) { [unowned self] result, error in
             self.categoriesRequest = nil
-            switch result {
-            case .success(let arrayResponse):
-                guard arrayResponse.items.count > 0 else {
-                    self.setNoCategoriesErrorDataSource()
-                    return
-                }
-                self.categories = arrayResponse.items
 
-                // Call method for deep linking to a category.
-                self.onCategoryAppearance?(arrayResponse.items)
-                self.onCategoryAppearance = nil
-
-                self.tableViewDataSource = self
-                self.fetchCoursesFromContentful()
-
-            case .error(let error):
+            if let error = error {
                 let errorModel = ErrorTableViewCell.Model(error: error, services: self.services)
                 self.tableViewDataSource = ErrorTableViewDataSource(model: errorModel)
             }
+            guard let data = result?.data, let categories = data.categoryCollection?.items, categories.count > 0 else {
+                self.setNoCategoriesErrorDataSource()
+                return
+            }
+
+            self.categories = categories.compactMap { $0?.fragments.categoryFragment }
+
+            // Call method for deep linking to a category.
+            self.onCategoryAppearance?(self.categories!)
+            self.onCategoryAppearance = nil
+
+            self.tableViewDataSource = self
+            self.fetchCoursesFromContentful()
         }
     }
 
@@ -152,21 +138,34 @@ class CoursesTableViewController: UIViewController, TabBarTabViewController, UIT
 
         // Cancel the previous request before making a new one.
         coursesRequest?.cancel()
-        coursesRequest = services.contentful.client.fetchMappedEntries(matching: coursesQuery) { [unowned self] result in
-            switch result {
-            case .success(let arrayResponse):
-                guard arrayResponse.items.count > 0 else {
+
+        // Different queries have different callbacks with Apollo because the Generic `GraphQLQuery` protocol
+        // has different associated types for different concrete queries which implement the protocol.
+        if let selectedCategory = selectedCategory {
+            coursesRequest = services.contentful.graphQLClient.fetch(query: CoursesByCategoryWithIdQuery(categoryId: selectedCategory.sys.id)) { [unowned self] result, error in
+                if let error = error {
+                    self.coursesSectionModel = CoursesSectionModel.errored(error)
+                    self.reloadCoursesSection()
+                }
+                guard let data = result?.data, let courseCollection = data.category?.linkedFrom?.entryCollection, courseCollection.items.count > 0 else {
                     self.setNoCoursesErrorDataSource()
                     return
                 }
-                self.coursesSectionModel = CoursesSectionModel.loaded(arrayResponse.items)
+                self.coursesSectionModel = CoursesSectionModel.loaded(courseCollection.items.compactMap { $0?.fragments.courseFragment })
+                self.reloadCoursesSection()
 
-                if self.willResolveStatesOnCourses() == false {
+            }
+        } else {
+            coursesRequest = services.contentful.graphQLClient.fetch(query: CoursesQuery()) { [unowned self] result, error in
+                if let error = error {
+                    self.coursesSectionModel = CoursesSectionModel.errored(error)
                     self.reloadCoursesSection()
                 }
-
-            case .error(let error):
-                self.coursesSectionModel = CoursesSectionModel.errored(error)
+                guard let data = result?.data, let courseCollection = data.courseCollection, courseCollection.items.count > 0 else {
+                    self.setNoCoursesErrorDataSource()
+                    return
+                }
+                self.coursesSectionModel = CoursesSectionModel.loaded(courseCollection.items.compactMap { $0?.fragments.courseFragment })
                 self.reloadCoursesSection()
             }
         }
@@ -174,7 +173,7 @@ class CoursesTableViewController: UIViewController, TabBarTabViewController, UIT
 
     func setNoCategoriesErrorDataSource() {
         let error = NoContentError.noCategories(contentfulService: services.contentful,
-                                                route: Category.contentTypeId,
+                                                route: "category",
                                                 fontSize: 14.0)
         let errorModel = ErrorTableViewCell.Model(error: error, services: services)
         tableViewDataSource = ErrorTableViewDataSource(model: errorModel)
@@ -182,38 +181,10 @@ class CoursesTableViewController: UIViewController, TabBarTabViewController, UIT
 
     func setNoCoursesErrorDataSource() {
         let error = NoContentError.noCourses(contentfulService: services.contentful,
-                                             route: Course.contentTypeId,
+                                             route: "course",
                                              fontSize: 14.0)
         let errorModel = ErrorTableViewCell.Model(error: error, services: services)
         tableViewDataSource = ErrorTableViewDataSource(model: errorModel)
-    }
-
-    func willResolveStatesOnCourses() -> Bool {
-        guard case .loaded(var courses) = coursesSectionModel else {
-            return false
-        }
-
-        // Create a Dispatch Group to block until we've resolved the state(s) on all the courses.
-        let dispatchGroup = DispatchGroup()
-
-        let isResolvingState: Bool = courses.reduce(into: true) { (bool: inout Bool, course: Course) in
-            dispatchGroup.enter()
-            bool = bool && services.contentful.willResolveStateIfNecessary(for: course) { (result: Result<Course>, _) in
-                guard let statefulCourse = result.value else { return }
-
-                if let index = courses.index(where: { $0.id == course.id }) {
-                    courses[index] = statefulCourse
-
-                    dispatchGroup.leave()
-                }
-            }
-        }
-        // Callback after all courses have had their states resolved.
-        dispatchGroup.notify(queue: DispatchQueue.main) { [unowned self] in
-            self.coursesSectionModel = .loaded(courses)
-            self.reloadCoursesSection()
-        }
-        return isResolvingState
     }
 
     func reloadCoursesSection() {
@@ -224,7 +195,7 @@ class CoursesTableViewController: UIViewController, TabBarTabViewController, UIT
             guard self === self.tableView.dataSource else { return }
             guard self.tableView.numberOfSections > self.coursesSectionIndex else { return }
 
-            self.tableView.reloadSections(IndexSet(integer: self.coursesSectionIndex), with: UITableViewRowAnimation.automatic)
+            self.tableView.reloadSections(IndexSet(integer: self.coursesSectionIndex), with: UITableView.RowAnimation.automatic)
         }
     }
 
@@ -240,16 +211,17 @@ class CoursesTableViewController: UIViewController, TabBarTabViewController, UIT
 
     // MARK: CategorySelectorDelegate
 
-    public func select(category: Category?) {
+    public func select(category: CategoryFragment?) {
         selectedCategory = category
         fetchCoursesFromContentful()
 
-        if let selection = selectedCategory {
-            Analytics.shared.logViewedRoute("/courses/\(selection.slug)", spaceId: services.contentful.credentials.spaceId)
-        }
+        // TODO:
+//        if let selection = selectedCategory {
+//            Analytics.shared.logViewedRoute("/courses/\(selection.slug)", spaceId: services.contentful.credentials.spaceId)
+//        }
     }
 
-    func didTapCategory(_ category: Category?) {
+    func didTapCategory(_ category: CategoryFragment?) {
         guard selectedCategory != category else { return }
 
         select(category: category)
@@ -268,7 +240,7 @@ class CoursesTableViewController: UIViewController, TabBarTabViewController, UIT
         tableView.registerNibFor(ErrorTableViewCell.self)
 
         // Enable table view cells to be sized dynamically based on inner content.
-        tableView.rowHeight = UITableViewAutomaticDimension
+        tableView.rowHeight = UITableView.automaticDimension
         // Importantly, the estimated height is the height of the CategorySelectorTableViewCell.
         // This prevents a bug where the layout constraints break and print to the console.
         tableView.estimatedRowHeight = 60

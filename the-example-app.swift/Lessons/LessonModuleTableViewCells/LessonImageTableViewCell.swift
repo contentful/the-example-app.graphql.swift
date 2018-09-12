@@ -3,16 +3,13 @@ import Foundation
 import UIKit
 import Alamofire
 import AlamofireImage
-import Contentful
 
 class LessonImageTableViewCell: UITableViewCell, CellConfigurable {
 
-    typealias ItemType = LessonImage
+    typealias ItemType = LessonImageFragment
 
-    func configure(item: LessonImage) {
-        guard let asset = item.image else {
-            return
-        }
+    func configure(item: LessonImageFragment) {
+        guard let asset = item.image?.fragments.assetFragment else { return }
         imageCaptionLabel.text = item.caption
         lessonImageView.setImageToNaturalHeight(fromAsset: asset, heightConstraint: lessonImageHeightConstraint)
     }
