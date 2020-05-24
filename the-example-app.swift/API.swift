@@ -3,6 +3,8 @@
 import Apollo
 
 public final class HomeQuery: GraphQLQuery {
+  public var operationName: String = "query"
+
   public let operationDefinition =
     "query Home($slug: String!) {\n  layoutCollection(where: {slug: $slug}) {\n    __typename\n    items {\n      __typename\n      ...LayoutFragment\n    }\n  }\n}"
 
@@ -134,6 +136,8 @@ public final class HomeQuery: GraphQLQuery {
 }
 
 public final class CourseBySlugQuery: GraphQLQuery {
+  public var operationName: String = "query"
+
   public let operationDefinition =
     "query CourseBySlug($slug: String!) {\n  courseCollection(where: {slug: $slug}) {\n    __typename\n    items {\n      __typename\n      ...CourseFragment\n    }\n  }\n}"
 
@@ -265,6 +269,8 @@ public final class CourseBySlugQuery: GraphQLQuery {
 }
 
 public final class CoursesByCategoryWithIdQuery: GraphQLQuery {
+  public var operationName: String = "query"
+
   public let operationDefinition =
     "query CoursesByCategoryWithId($categoryId: String!) {\n  category(id: $categoryId) {\n    __typename\n    linkedFrom {\n      __typename\n      entryCollection {\n        __typename\n        items {\n          __typename\n          ...CourseFragment\n        }\n      }\n    }\n  }\n}"
 
@@ -508,6 +514,7 @@ public final class CoursesByCategoryWithIdQuery: GraphQLQuery {
 }
 
 public final class CoursesQuery: GraphQLQuery {
+  public var operationName: String = "query"
   public let operationDefinition =
     "query Courses {\n  courseCollection {\n    __typename\n    items {\n      __typename\n      ...CourseFragment\n    }\n  }\n}"
 
@@ -632,6 +639,8 @@ public final class CoursesQuery: GraphQLQuery {
 }
 
 public final class CategoriesQuery: GraphQLQuery {
+  public var operationName: String = "query"
+
   public let operationDefinition =
     "query Categories {\n  categoryCollection {\n    __typename\n    items {\n      __typename\n      ...CategoryFragment\n    }\n  }\n}"
 
