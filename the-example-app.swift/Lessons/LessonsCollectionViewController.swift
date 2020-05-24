@@ -62,7 +62,7 @@ class LessonsCollectionViewController: UIViewController, UICollectionViewDataSou
         assert(course != nil)
 
         // If we the passed in slug matches a lesson already contained in the collections data source
-        guard let lessonIndex = course?.lessonsCollection?.items.index(where: { $0?.fragments.lessonFragment.slug == slug }) else { return }
+        guard let lessonIndex = course?.lessonsCollection?.items.firstIndex(where: { $0?.fragments.lessonFragment.slug == slug }) else { return }
         let indexPath = IndexPath(item: lessonIndex, section: 0)
 
         if let collectionView = collectionView {
