@@ -103,27 +103,29 @@ class HomeLayoutTableViewController: UIViewController, TabBarTabViewController, 
 
         // Cancel the previous request before making a new one.
         layoutRequest?.cancel()
-        layoutRequest = services.contentful.graphQLClient.fetch(query: self.query) { [unowned self] result, error in
+        layoutRequest = services.contentful.graphQLClient.fetch(query: self.query) { [unowned self] response in
+            switch response {
+            case .success(let result):
+                if let data = result.data {
+                    guard let layoutCollection = data.layoutCollection, layoutCollection.items.count > 0 else {
+                        self.setNoHomeLayoutErrorDataSource()
+                        return
+                    }
+                    guard let modules = layoutCollection.items.first!?.fragments.layoutFragment.contentModulesCollection?.items, modules.count > 0 else {
+                        self.setNoModulesDataSource()
+                        return
+                    }
+                    self.homeLayout = layoutCollection.items.first!?.fragments.layoutFragment
+                    self.tableViewDataSource = self
+                    DispatchQueue.main.async {
+                        self.tableView.delegate = self
+                    }
+                }
 
-            if let error = error {
+            case .failure(let error):
                 let errorModel = ErrorTableViewCell.Model(error: error, services: self.services)
                 self.tableViewDataSource = ErrorTableViewDataSource(model: errorModel)
                 return // TODO: return?
-            }
-            if let data = result?.data {
-                guard let layoutCollection = data.layoutCollection, layoutCollection.items.count > 0 else {
-                    self.setNoHomeLayoutErrorDataSource()
-                    return
-                }
-                guard let modules = layoutCollection.items.first!?.fragments.layoutFragment.contentModulesCollection?.items, modules.count > 0 else {
-                    self.setNoModulesDataSource()
-                    return
-                }
-                self.homeLayout = layoutCollection.items.first!?.fragments.layoutFragment
-                self.tableViewDataSource = self
-                DispatchQueue.main.async {
-                    self.tableView.delegate = self
-                }
             }
         }
     }

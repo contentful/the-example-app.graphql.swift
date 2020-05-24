@@ -108,19 +108,24 @@ class CoursesTableViewController: UIViewController, TabBarTabViewController, UIT
         categoriesRequest?.cancel()
         coursesRequest?.cancel()
 
-        categoriesRequest = services.contentful.graphQLClient.fetch(query: CategoriesQuery()) { [unowned self] result, error in
+        categoriesRequest = services.contentful.graphQLClient.fetch(query: CategoriesQuery()) { [unowned self] response in
             self.categoriesRequest = nil
 
-            if let error = error {
-                let errorModel = ErrorTableViewCell.Model(error: error, services: self.services)
-                self.tableViewDataSource = ErrorTableViewDataSource(model: errorModel)
-            }
-            guard let data = result?.data, let categories = data.categoryCollection?.items, categories.count > 0 else {
+            switch response {
+            case .success(let result):
+            guard let categories = result.data?.categoryCollection?.items,
+                categories.count > 0
+            else {
                 self.setNoCategoriesErrorDataSource()
                 return
             }
 
             self.categories = categories.compactMap { $0?.fragments.categoryFragment }
+
+            case .failure(let error):
+                let errorModel = ErrorTableViewCell.Model(error: error, services: self.services)
+                self.tableViewDataSource = ErrorTableViewDataSource(model: errorModel)
+            }
 
             // Call method for deep linking to a category.
             self.onCategoryAppearance?(self.categories!)
@@ -142,30 +147,48 @@ class CoursesTableViewController: UIViewController, TabBarTabViewController, UIT
         // Different queries have different callbacks with Apollo because the Generic `GraphQLQuery` protocol
         // has different associated types for different concrete queries which implement the protocol.
         if let selectedCategory = selectedCategory {
-            coursesRequest = services.contentful.graphQLClient.fetch(query: CoursesByCategoryWithIdQuery(categoryId: selectedCategory.sys.id)) { [unowned self] result, error in
-                if let error = error {
+            let query = CoursesByCategoryWithIdQuery(categoryId: selectedCategory.sys.id)
+            coursesRequest = services.contentful.graphQLClient.fetch(query: query) { [unowned self] response in
+                switch response {
+                case .success(let result):
+                    guard let courseCollection = result.data?.category?.linkedFrom?.entryCollection,
+                        courseCollection.items.count > 0
+                    else {
+                        self.setNoCoursesErrorDataSource()
+                        return
+                    }
+
+                    self.coursesSectionModel = CoursesSectionModel.loaded(
+                        courseCollection.items.compactMap { $0?.fragments.courseFragment }
+                    )
+
+                case .failure(let error):
                     self.coursesSectionModel = CoursesSectionModel.errored(error)
                     self.reloadCoursesSection()
                 }
-                guard let data = result?.data, let courseCollection = data.category?.linkedFrom?.entryCollection, courseCollection.items.count > 0 else {
-                    self.setNoCoursesErrorDataSource()
-                    return
-                }
-                self.coursesSectionModel = CoursesSectionModel.loaded(courseCollection.items.compactMap { $0?.fragments.courseFragment })
-                self.reloadCoursesSection()
 
+                self.reloadCoursesSection()
             }
         } else {
-            coursesRequest = services.contentful.graphQLClient.fetch(query: CoursesQuery()) { [unowned self] result, error in
-                if let error = error {
+            coursesRequest = services.contentful.graphQLClient.fetch(query: CoursesQuery()) { [unowned self] response in
+                switch response {
+                case .success(let result):
+                    guard let courseCollection = result.data?.courseCollection,
+                        courseCollection.items.count > 0
+                    else {
+                        self.setNoCoursesErrorDataSource()
+                        return
+                    }
+
+                    self.coursesSectionModel = CoursesSectionModel.loaded(
+                        courseCollection.items.compactMap { $0?.fragments.courseFragment }
+                    )
+
+                case .failure(let error):
                     self.coursesSectionModel = CoursesSectionModel.errored(error)
                     self.reloadCoursesSection()
                 }
-                guard let data = result?.data, let courseCollection = data.courseCollection, courseCollection.items.count > 0 else {
-                    self.setNoCoursesErrorDataSource()
-                    return
-                }
-                self.coursesSectionModel = CoursesSectionModel.loaded(courseCollection.items.compactMap { $0?.fragments.courseFragment })
+
                 self.reloadCoursesSection()
             }
         }

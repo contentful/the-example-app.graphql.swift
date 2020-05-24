@@ -93,55 +93,57 @@ class CourseViewController: UIViewController, UITableViewDataSource, UITableView
 
         showLoadingStateOnLessonsCollection()
         courseRequest?.cancel()
-        courseRequest = services.contentful.graphQLClient.fetch(query: query(slug: slug)) { [weak self] result, error in
+        courseRequest = services.contentful.graphQLClient.fetch(query: query(slug: slug)) { [weak self] response in
             DispatchQueue.main.async {
                 guard let strongSelf = self else { return }
                 strongSelf.courseRequest = nil
 
-                if let error = error {
+                switch response {
+                case .success(let result):
+                    if let data = result.data {
+                        guard let courseCollection = data.courseCollection, courseCollection.items.count > 0 else {
+                            let error: NoContentError
+                            if let lessonSlug = lessonSlug {
+                                error = NoContentError.noLessons(contentfulService: strongSelf.services.contentful,
+                                                                 route: "courses/\(slug)/lessons/\(lessonSlug)", fontSize: 14.0)
+                            } else {
+                                error = NoContentError.noCourse(contentfulService: strongSelf.services.contentful,
+                                                                route: "courses/\(slug)", fontSize: 14.0)
+                            }
+                            strongSelf.showNoContentErrorAndPop(error: error)
+                            return
+                        }
+                        strongSelf.course = data.courseCollection!.items.first!!.fragments.courseFragment
+                        strongSelf.tableViewDataSource = strongSelf
+                        strongSelf.tableView?.delegate = strongSelf
+
+                        guard let lessonSlug = lessonSlug ?? self?.lessonsViewController?.currentlyVisibleLesson?.slug else {
+                            let courseSlug = strongSelf.course?.slug ?? "unknown"
+                            Analytics.shared.logViewedRoute("/courses/\(courseSlug)", spaceId: strongSelf.services.contentful.credentials.spaceId)
+                            return
+                        }
+                        guard strongSelf.course!.hasLessons else {
+                            // Tried to deep link into a lessons, but no lessons found.
+                            let error = NoContentError.noLessons(contentfulService: strongSelf.services.contentful,
+                                                                 route: "courses/\(slug)/lessons/\(lessonSlug)",
+                                fontSize: 14.0)
+                            strongSelf.showNoContentErrorAndPop(error: error)
+                            return
+                        }
+                        guard strongSelf.course!.lessonsCollection?.items.contains(where: { $0?.fragments.lessonFragment.slug == lessonSlug }) ?? false else {
+                            // If lessons are currenlty being displayed, and the course doesn't contain the lesson we want to display
+                            // just go back to the course overview.
+                            strongSelf.lessonsViewController?.navigationController?.popViewController(animated: true)
+                            return
+                        }
+
+                        strongSelf.lessonsViewController?.setCourse(strongSelf.course!, showLessonWithSlug: lessonSlug)
+                    }
+
+                case .failure(let error):
                     let model = ErrorTableViewCell.Model(error: error, services: strongSelf.services)
                     strongSelf.tableViewDataSource = ErrorTableViewDataSource(model: model)
                     return // TODO: return?
-                }
-                if let data = result?.data {
-                    guard let courseCollection = data.courseCollection, courseCollection.items.count > 0 else {
-                        let error: NoContentError
-                        if let lessonSlug = lessonSlug {
-                            error = NoContentError.noLessons(contentfulService: strongSelf.services.contentful,
-                                                             route: "courses/\(slug)/lessons/\(lessonSlug)", fontSize: 14.0)
-                        } else {
-                            error = NoContentError.noCourse(contentfulService: strongSelf.services.contentful,
-                                                            route: "courses/\(slug)", fontSize: 14.0)
-                        }
-                        strongSelf.showNoContentErrorAndPop(error: error)
-                        return
-                    }
-                    strongSelf.course = data.courseCollection!.items.first!!.fragments.courseFragment
-                    strongSelf.tableViewDataSource = strongSelf
-                    strongSelf.tableView?.delegate = strongSelf
-
-                    guard let lessonSlug = lessonSlug ?? self?.lessonsViewController?.currentlyVisibleLesson?.slug else {
-                        let courseSlug = strongSelf.course?.slug ?? "unknown"
-                        Analytics.shared.logViewedRoute("/courses/\(courseSlug)", spaceId: strongSelf.services.contentful.credentials.spaceId)
-                        return
-                    }
-                    guard strongSelf.course!.hasLessons else {
-                        // Tried to deep link into a lessons, but no lessons found.
-                        let error = NoContentError.noLessons(contentfulService: strongSelf.services.contentful,
-                                                             route: "courses/\(slug)/lessons/\(lessonSlug)",
-                                                             fontSize: 14.0)
-                        strongSelf.showNoContentErrorAndPop(error: error)
-                        return
-                    }
-                    guard strongSelf.course!.lessonsCollection?.items.contains(where: { $0?.fragments.lessonFragment.slug == lessonSlug }) ?? false else {
-                        // If lessons are currenlty being displayed, and the course doesn't contain the lesson we want to display
-                        // just go back to the course overview.
-                        strongSelf.lessonsViewController?.navigationController?.popViewController(animated: true)
-                        return
-                    }
-
-                    strongSelf.lessonsViewController?.setCourse(strongSelf.course!, showLessonWithSlug: lessonSlug)
-
                 }
             }
         }
