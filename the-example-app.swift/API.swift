@@ -3,10 +3,10 @@
 import Apollo
 
 public final class HomeQuery: GraphQLQuery {
-  public var operationName: String = "query"
+  public var operationName: String = "Home"
 
   public let operationDefinition =
-    "query Home($slug: String!) {\n  layoutCollection(where: {slug: $slug}) {\n    __typename\n    items {\n      __typename\n      ...LayoutFragment\n    }\n  }\n}"
+    "query Home($slug: String!) {\n  layoutCollection(where: {slug: $slug}, limit: 1) {\n    __typename\n    items {\n      __typename\n      ...LayoutFragment\n    }\n  }\n}"
 
   public var queryDocument: String { return operationDefinition.appending(LayoutFragment.fragmentDefinition).appending(LayoutHighlightedCourseFragment.fragmentDefinition).appending(CourseFragment.fragmentDefinition).appending(AssetFragment.fragmentDefinition).appending(LessonFragment.fragmentDefinition).appending(LessonCodeSnippetFragment.fragmentDefinition).appending(LessonImageFragment.fragmentDefinition).appending(LessonCopyFragment.fragmentDefinition).appending(CategoryFragment.fragmentDefinition).appending(LayoutCopyFragment.fragmentDefinition).appending(LayoutHeroImageFragment.fragmentDefinition) }
 
@@ -136,10 +136,10 @@ public final class HomeQuery: GraphQLQuery {
 }
 
 public final class CourseBySlugQuery: GraphQLQuery {
-  public var operationName: String = "query"
+  public var operationName: String = "CourseBySlug"
 
   public let operationDefinition =
-    "query CourseBySlug($slug: String!) {\n  courseCollection(where: {slug: $slug}) {\n    __typename\n    items {\n      __typename\n      ...CourseFragment\n    }\n  }\n}"
+    "query CourseBySlug($slug: String!) {\n  courseCollection(where: {slug: $slug}, limit: 1) {\n    __typename\n    items {\n      __typename\n      ...CourseFragment\n    }\n  }\n}"
 
   public var queryDocument: String { return operationDefinition.appending(CourseFragment.fragmentDefinition).appending(AssetFragment.fragmentDefinition).appending(LessonFragment.fragmentDefinition).appending(LessonCodeSnippetFragment.fragmentDefinition).appending(LessonImageFragment.fragmentDefinition).appending(LessonCopyFragment.fragmentDefinition).appending(CategoryFragment.fragmentDefinition) }
 
@@ -269,10 +269,10 @@ public final class CourseBySlugQuery: GraphQLQuery {
 }
 
 public final class CoursesByCategoryWithIdQuery: GraphQLQuery {
-  public var operationName: String = "query"
+  public var operationName: String = "CoursesByCategoryWithId"
 
   public let operationDefinition =
-    "query CoursesByCategoryWithId($categoryId: String!) {\n  category(id: $categoryId) {\n    __typename\n    linkedFrom {\n      __typename\n      entryCollection {\n        __typename\n        items {\n          __typename\n          ...CourseFragment\n        }\n      }\n    }\n  }\n}"
+    "query CoursesByCategoryWithId($categoryId: String!) {\n  category(id: $categoryId) {\n    __typename\n    linkedFrom {\n      __typename\n      entryCollection(limit: 10) {\n        __typename\n        items {\n          __typename\n          ...CourseFragment\n        }\n      }\n    }\n  }\n}"
 
   public var queryDocument: String { return operationDefinition.appending(CourseFragment.fragmentDefinition).appending(AssetFragment.fragmentDefinition).appending(LessonFragment.fragmentDefinition).appending(LessonCodeSnippetFragment.fragmentDefinition).appending(LessonImageFragment.fragmentDefinition).appending(LessonCopyFragment.fragmentDefinition).appending(CategoryFragment.fragmentDefinition) }
 
@@ -514,14 +514,13 @@ public final class CoursesByCategoryWithIdQuery: GraphQLQuery {
 }
 
 public final class CoursesQuery: GraphQLQuery {
-  public var operationName: String = "query"
+  public var operationName: String = "Courses"
   public let operationDefinition =
-    "query Courses {\n  courseCollection {\n    __typename\n    items {\n      __typename\n      ...CourseFragment\n    }\n  }\n}"
+    "query Courses {\n  courseCollection(limit: 5) {\n    __typename\n    items {\n      __typename\n      ...CourseFragment\n    }\n  }\n}"
 
   public var queryDocument: String { return operationDefinition.appending(CourseFragment.fragmentDefinition).appending(AssetFragment.fragmentDefinition).appending(LessonFragment.fragmentDefinition).appending(LessonCodeSnippetFragment.fragmentDefinition).appending(LessonImageFragment.fragmentDefinition).appending(LessonCopyFragment.fragmentDefinition).appending(CategoryFragment.fragmentDefinition) }
 
-  public init() {
-  }
+  public init() {}
 
   public struct Data: GraphQLSelectionSet {
     public static let possibleTypes = ["Query"]
@@ -639,10 +638,10 @@ public final class CoursesQuery: GraphQLQuery {
 }
 
 public final class CategoriesQuery: GraphQLQuery {
-  public var operationName: String = "query"
+  public var operationName: String = "Categories"
 
   public let operationDefinition =
-    "query Categories {\n  categoryCollection {\n    __typename\n    items {\n      __typename\n      ...CategoryFragment\n    }\n  }\n}"
+    "query Categories {\n  categoryCollection(limit: 1) {\n    __typename\n    items {\n      __typename\n      ...CategoryFragment\n    }\n  }\n}"
 
   public var queryDocument: String { return operationDefinition.appending(CategoryFragment.fragmentDefinition) }
 
@@ -766,7 +765,7 @@ public final class CategoriesQuery: GraphQLQuery {
 
 public struct LayoutFragment: GraphQLFragment {
   public static let fragmentDefinition =
-    "fragment LayoutFragment on Layout {\n  __typename\n  title\n  slug\n  contentModulesCollection {\n    __typename\n    items {\n      __typename\n      ...LayoutHighlightedCourseFragment\n      ...LayoutCopyFragment\n      ...LayoutHeroImageFragment\n    }\n  }\n}"
+    "fragment LayoutFragment on Layout {\n  __typename\n  title\n  slug\n  contentModulesCollection(limit: 1) {\n    __typename\n    items {\n      __typename\n      ...LayoutHighlightedCourseFragment\n      ...LayoutCopyFragment\n      ...LayoutHeroImageFragment\n    }\n  }\n}"
 
   public static let possibleTypes = ["Layout"]
 
@@ -1380,7 +1379,7 @@ public struct AssetFragment: GraphQLFragment {
 
 public struct CourseFragment: GraphQLFragment {
   public static let fragmentDefinition =
-    "fragment CourseFragment on Course {\n  __typename\n  sys {\n    __typename\n    id\n  }\n  title\n  slug\n  image {\n    __typename\n    ...AssetFragment\n  }\n  lessonsCollection {\n    __typename\n    items {\n      __typename\n      ...LessonFragment\n    }\n  }\n  categoriesCollection {\n    __typename\n    items {\n      __typename\n      ...CategoryFragment\n    }\n  }\n  shortDescription\n  description\n  duration\n  skillLevel\n}"
+    "fragment CourseFragment on Course {\n  __typename\n  sys {\n    __typename\n    id\n  }\n  title\n  slug\n  image {\n    __typename\n    ...AssetFragment\n  }\n  lessonsCollection {\n    __typename\n    items {\n      __typename\n      ...LessonFragment\n    }\n  }\n  categoriesCollection(limit: 1) {\n    __typename\n    items {\n      __typename\n      ...CategoryFragment\n    }\n  }\n  shortDescription\n  description\n  duration\n  skillLevel\n}"
 
   public static let possibleTypes = ["Course"]
 
@@ -1771,7 +1770,7 @@ public struct CourseFragment: GraphQLFragment {
 
 public struct LessonFragment: GraphQLFragment {
   public static let fragmentDefinition =
-    "fragment LessonFragment on Lesson {\n  __typename\n  title\n  slug\n  modulesCollection {\n    __typename\n    items {\n      __typename\n      ...LessonCodeSnippetFragment\n      ...LessonImageFragment\n      ...LessonCopyFragment\n    }\n  }\n}"
+    "fragment LessonFragment on Lesson {\n  __typename\n  title\n  slug\n  modulesCollection(limit: 1) {\n    __typename\n    items {\n      __typename\n      ...LessonCodeSnippetFragment\n      ...LessonImageFragment\n      ...LessonCopyFragment\n    }\n  }\n}"
 
   public static let possibleTypes = ["Lesson"]
 
