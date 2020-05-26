@@ -62,11 +62,14 @@ class ContentfulService {
         self.credentials = credentials
 
         // GraphQL ApolloClient.
-        let urlSessionCongif: URLSessionConfiguration = .default
-        urlSessionCongif.httpAdditionalHeaders = ["Authorization": "Bearer \(credentials.deliveryAPIAccessToken)"]
+        let urlSessionConfiguration: URLSessionConfiguration = .default
+        urlSessionConfiguration.httpAdditionalHeaders = ["Authorization": "Bearer \(credentials.deliveryAPIAccessToken)"]
         let url = URL(string: "https://graphql.contentful.com/content/v1/spaces/\(credentials.spaceId)/environments/master")!
-        graphQLClient = ApolloClient(networkTransport: HTTPNetworkTransport(url: url, configuration: urlSessionCongif))
 
+        let urlSessionClient = URLSessionClient(sessionConfiguration: urlSessionConfiguration)
+        let networkTransport = HTTPNetworkTransport(url: url, client: urlSessionClient)
+        graphQLClient = ApolloClient(networkTransport: networkTransport)
+        
         stateMachine = StateMachine<State>(initialState: state)
     }
 }

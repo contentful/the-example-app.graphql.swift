@@ -42,7 +42,7 @@ class CategorySelectorTableViewCell: UITableViewCell, CellConfigurable, UICollec
     }
     
     func updateSelectedCategory(item: Model) {
-        if let selectedCategory = item.selectedCategory, let rowIndex = item.categories?.index(of: selectedCategory) {
+        if let selectedCategory = item.selectedCategory, let rowIndex = item.categories?.firstIndex(of: selectedCategory) {
             guard collectionView.numberOfItems(inSection: 1) > 0 else { return }
             let indexPath = IndexPath(row: Int(rowIndex), section: 1)
             collectionView.selectItem(at: indexPath, animated: true, scrollPosition: .centeredHorizontally)

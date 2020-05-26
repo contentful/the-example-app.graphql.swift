@@ -5,7 +5,7 @@
 #
 
 query Home($slug: String!) {
-  layoutCollection(where: {slug: $slug}) {
+  layoutCollection(where: {slug: $slug}, limit: 1) {
     items {
 			...LayoutFragment
     }
@@ -15,7 +15,7 @@ query Home($slug: String!) {
 fragment LayoutFragment on Layout {
   title
   slug
-  contentModulesCollection {
+  contentModulesCollection(limit: 1) {
     items {
       ...LayoutHighlightedCourseFragment
       ...LayoutCopyFragment
@@ -48,7 +48,7 @@ fragment LayoutCopyFragment on LayoutCopy {
 }
 
 query CourseBySlug($slug: String!) {
-  courseCollection(where: {slug: $slug}) {
+  courseCollection(where: {slug: $slug}, limit: 1) {
     items {
       ...CourseFragment
     }
@@ -58,7 +58,7 @@ query CourseBySlug($slug: String!) {
 query CoursesByCategoryWithId($categoryId: String!) {
   category(id: $categoryId) {
     linkedFrom {
-      entryCollection {
+      entryCollection(limit: 10) {
         items {
           ...CourseFragment
         }
@@ -68,7 +68,7 @@ query CoursesByCategoryWithId($categoryId: String!) {
 }
 
 query Courses {
-  courseCollection {
+  courseCollection(limit: 5) {
     items {
       ...CourseFragment
     }
@@ -76,7 +76,7 @@ query Courses {
 }
 
 query Categories {
-  categoryCollection {
+  categoryCollection(limit: 1) {
     items {
       ...CategoryFragment
     }
@@ -110,7 +110,7 @@ fragment CourseFragment on Course {
       ...LessonFragment
     }
   }
-  categoriesCollection {
+  categoriesCollection(limit: 1) {
     items {
       ...CategoryFragment
     }
@@ -124,7 +124,7 @@ fragment CourseFragment on Course {
 fragment LessonFragment on Lesson {
   title
   slug
-  modulesCollection {
+  modulesCollection(limit: 1) {
     items {
       ...LessonCodeSnippetFragment
       ...LessonImageFragment
