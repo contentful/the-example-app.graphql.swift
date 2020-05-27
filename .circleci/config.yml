@@ -8,7 +8,7 @@ jobs:
 
     # Specify the Xcode version to use
     macos:
-      xcode: "10.0.0"
+      xcode: "11.4.1"
     
     shell: /bin/bash --login -o pipefail
 
@@ -28,15 +28,6 @@ jobs:
           key: 1-gems-{{ checksum "Gemfile.lock" }}
           paths:
             - vendor/bundle
-
-      # Install Cocoapods
-      - run:
-          name: Fetch CocoaPods Specs
-          command: |
-            curl https://cocoapods-specs.circleci.com/fetch-cocoapods-repo-from-s3.sh | bash -s cf
-      - run:
-          name: Install CocoaPods
-          command: bundle exec pod install
 
       # Build the app and run tests
       - run:
