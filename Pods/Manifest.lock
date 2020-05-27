@@ -10,13 +10,6 @@ PODS:
     - Fabric (~> 1.10.2)
   - DeepLinkKit (1.5.1)
   - Fabric (1.10.2)
-  - Firebase/Analytics (6.25.0):
-    - Firebase/Core
-  - Firebase/Core (6.25.0):
-    - Firebase/CoreOnly
-    - FirebaseAnalytics (= 6.5.1)
-  - Firebase/CoreOnly (6.25.0):
-    - FirebaseCore (= 6.7.1)
   - FirebaseAnalytics (6.5.1):
     - FirebaseCore (~> 6.7)
     - FirebaseInstallations (~> 1.2)
@@ -96,7 +89,7 @@ DEPENDENCIES:
   - Crashlytics
   - DeepLinkKit
   - Fabric
-  - Firebase/Analytics
+  - FirebaseAnalytics
   - FirebaseCore
   - KIF
   - markymark
@@ -111,7 +104,6 @@ SPEC REPOS:
     - Crashlytics
     - DeepLinkKit
     - Fabric
-    - Firebase
     - FirebaseAnalytics
     - FirebaseCore
     - FirebaseCoreDiagnostics
@@ -147,7 +139,6 @@ SPEC CHECKSUMS:
   Crashlytics: 540b7e5f5da5a042647227a5e3ac51d85eed06df
   DeepLinkKit: 9f300348cbb20ef8389a5018a57d8c9952b1831c
   Fabric: 706c8b8098fff96c33c0db69cbf81f9c551d0d74
-  Firebase: 5719b4f965f76643241a1bb8244483ff6117db39
   FirebaseAnalytics: 93565f3f0f0f50a5d8770850bfe6a82eaba5db27
   FirebaseCore: 6023faeada5afa95a349fccafb40900e32e9ac42
   FirebaseCoreDiagnostics: 4a773a47bd83bbd5a9b1ccf1ce7caa8b2d535e67
@@ -165,6 +156,6 @@ SPEC CHECKSUMS:
   PromisesObjC: c119f3cd559f50b7ae681fa59dc1acd19173b7e6
   SnowplowTracker: 71b47ab2ea802f8d4d9c798113e96a8e6e56427a
 
-PODFILE CHECKSUM: 919337741fa3872c3e96ccf19cf860a0ca9edc89
+PODFILE CHECKSUM: 3b3f001653d13819db89fce286e999b237c87b58
 
 COCOAPODS: 1.5.3

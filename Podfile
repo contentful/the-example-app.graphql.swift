@@ -6,7 +6,7 @@ inhibit_all_warnings!
 
 target 'the-example-app.swift' do
   pod 'FirebaseCore'
-  pod 'Firebase/Analytics'
+  pod 'FirebaseAnalytics'
   pod 'SnowplowTracker'
   pod 'markymark'
   pod 'AlamofireImage', '~> 3.3'
