@@ -597,7 +597,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-the-example-app.swift/Pods-the-example-app.swift-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-the-example-app.swift/Pods-the-example-app.swift-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/Alamofire/Alamofire.framework",
 				"${BUILT_PRODUCTS_DIR}/AlamofireImage/AlamofireImage.framework",
 				"${BUILT_PRODUCTS_DIR}/Apollo/Apollo.framework",
@@ -626,7 +626,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-the-example-app.swift/Pods-the-example-app.swift-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-the-example-app.swift/Pods-the-example-app.swift-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		B708BFBFB7E48E7E0F1520B5 /* [CP] Embed Pods Frameworks */ = {
@@ -635,7 +635,7 @@
 			files = (
 			);
 			inputPaths = (
-				"${SRCROOT}/Pods/Target Support Files/Pods-the-example-app.swiftTests/Pods-the-example-app.swiftTests-frameworks.sh",
+				"${PODS_ROOT}/Target Support Files/Pods-the-example-app.swiftTests/Pods-the-example-app.swiftTests-frameworks.sh",
 				"${BUILT_PRODUCTS_DIR}/KIF/KIF.framework",
 				"${BUILT_PRODUCTS_DIR}/Nimble/Nimble.framework",
 			);
@@ -646,7 +646,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-the-example-app.swiftTests/Pods-the-example-app.swiftTests-frameworks.sh\"\n";
+			shellScript = "\"${PODS_ROOT}/Target Support Files/Pods-the-example-app.swiftTests/Pods-the-example-app.swiftTests-frameworks.sh\"\n";
 			showEnvVarsInLog = 0;
 		};
 		EDC4A50E2028A85F00E15F4E /* Fabric */ = {
