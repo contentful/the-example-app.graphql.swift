@@ -14,7 +14,7 @@ target 'the-example-app.swift' do
   pod 'Fabric'
   pod 'Crashlytics'
   pod 'Apollo', '~> 0.27.0'
-  pod 'Contentful/ImageOptions', :git => 'https://github.com/contentful/contentful.swift.git', :branch => 'master'
+  pod 'Contentful/ImageOptions'
 
   target 'the-example-app.swiftTests' do
     inherit! :search_paths
